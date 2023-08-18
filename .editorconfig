@@ -1,0 +1,4 @@
+[*.{kt,kts}]
+ktlint_code_style = official
+ktlint_standard_trailing-comma-on-declaration-site = disabled
+ktlint_standard_trailing-comma-on-call-site = disabled

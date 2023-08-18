@@ -1,0 +1,68 @@
+[versions]
+# https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib
+kotlin = "1.8.20"
+
+# https://mvnrepository.com/artifact/org.slf4j/slf4j-api
+slf4j = "2.0.7"
+# https://mvnrepository.com/artifact/com.sksamuel.hoplite/hoplite-core
+hoplite = "2.7.4"
+# https://mvnrepository.com/artifact/org.http4k/http4k-core
+http4k = "4.44.0.0"
+# https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
+jackson = "2.15.1"
+# https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
+okhttp = "4.11.0"
+# https://mvnrepository.com/artifact/org.postgresql/postgresql
+postgresql = "42.6.0"
+# https://mvnrepository.com/artifact/org.flywaydb/flyway-core
+flyway = "9.18.0"
+# https://mvnrepository.com/artifact/com.sksamuel.scrimage/scrimage-core
+scrimage = "4.0.37"
+# https://mvnrepository.com/artifact/com.slack.api/bolt
+bolt = "1.29.2"
+# https://mvnrepository.com/artifact/javax.websocket/javax.websocket-api
+websocket = "1.1"
+# https://mvnrepository.com/artifact/org.glassfish.tyrus.bundles/tyrus-standalone-client
+tyrus = "1.20" # bolt does not support newer than v1.x
+# https://mvnrepository.com/artifact/com.target/lite-for-jdbc
+liteForJdbc = "2.2.0"
+
+ktlint = "11.2.0"
+
+[libraries]
+
+boltCore = { module = "com.slack.api:bolt", version.ref = "bolt" }
+boltHttp4k = { module = "com.slack.api:bolt-http4k", version.ref = "bolt" }
+boltServlet = { module = "com.slack.api:bolt-servlet", version.ref = "bolt" }
+boltSocketMode = { module = "com.slack.api:bolt-socket-mode", version.ref = "bolt" }
+boltKotlinModel = { module = "com.slack.api:slack-api-model-kotlin-extension", version.ref = "bolt" }
+boltKotlinClient = { module = "com.slack.api:slack-api-client-kotlin-extension", version.ref = "bolt" }
+flyway = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+hoplite-core = { module = "com.sksamuel.hoplite:hoplite-core", version.ref = "hoplite" }
+hoplite-hocon = { module = "com.sksamuel.hoplite:hoplite-hocon", version.ref = "hoplite" }
+hoplite-yaml = { module = "com.sksamuel.hoplite:hoplite-yaml", version.ref = "hoplite" }
+http4kCore = { module = "org.http4k:http4k-core", version.ref = "http4k" }
+jacksonDatabind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+jacksonKotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+ktlint = { module = "org.jlleitschuh.gradle:ktlint-gradle", version.ref = "ktlint" }
+liteForJdbc = { module = "com.target:lite-for-jdbc", version.ref = "liteForJdbc" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+scrimage-core = { module = "com.sksamuel.scrimage:scrimage-core", version.ref = "scrimage"}
+scrimage-filters = { module = "com.sksamuel.scrimage:scrimage-filters", version.ref = "scrimage"}
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
+tyrusClient = { module = "org.glassfish.tyrus.bundles:tyrus-standalone-client", version.ref = "tyrus" }
+websocket = { module = "javax.websocket:javax.websocket-api", version.ref = "websocket" }
+
+[bundles]
+hoplite = ["hoplite-core", "hoplite-hocon", "hoplite-yaml"]
+scrimage = ["scrimage-core", "scrimage-filters"]
+jackson = ["jacksonDatabind", "jacksonKotlin"]
+bolt = ["boltCore", "boltHttp4k", "boltServlet", "boltSocketMode", "boltKotlinModel", "boltKotlinClient"]
+slf4j = ["slf4j-api", "slf4j-simple"]
+
+[plugins]
+flyway = { id = "org.flywaydb.flyway", version.ref = "flyway" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
+

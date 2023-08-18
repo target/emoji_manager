@@ -1,0 +1,65 @@
+text:
+  intro: |
+    Custom emoji are a community-supported effort in partnership with the Slack admins.
+    Any team member in Slack can suggest a new emoji by posting an image file
+    _with the suggested emoji name as the file name_ in the emoji management channel <#${slack.slackEmojiChannel}>.
+    If it receives 4 more upvotes than downvotes before ${votes.maxDuration} business days, it will be added.
+    There is a comment period of ${votes.commentPeriod} business days to ensure everyone has a chance to see the proposal.
+    
+    You may withdraw your proposal by reacting to the message with :${text.withdraw}: Note that only the original author can do this, and it cannot be undone.
+    
+    Proposals for aliases and emoji removals can be done with shortcuts in the emoji management channel.
+
+  homeAdvanced: "Advanced slash commands can be used with the `/emoji` command. See `/emoji help` for more details."
+  upvote: "white_check_mark"
+  downvote: "x"
+  force: "large_green_circle"
+  block: "no_entry_sign"
+  withdraw: "rewind"
+
+  help: 
+    general: |
+      *Bot Commands*
+      ${text.help.cmdVersion}
+      
+      ${text.help.cmdStatus}
+      
+      ${text.help.cmdAlias}
+      
+      ${text.help.cmdRemove}
+
+
+    admin: |
+      React with `:${text.block}:` :${text.block}: to prevent a proposal from being accepted. Remove that reaction to unblock.
+      
+      React with `:${text.force}:` :${text.force}: to immediately proceed with the proposal. There is no undo of this action (obviously).
+      
+      *Bot Commands*
+      
+      ${text.help.cmdReset}
+      
+      ${text.help.cmdTally}
+      
+      ${text.help.cmdFakevote}
+
+    cmdVersion: |
+      `/emoji version`
+      Display the current version of Emoji Manager
+    cmdStatus: |
+      `/emoji status [emoji_name]`
+      View all pending emoji/alias proposals, or include an emoji name to view that emoji's history
+    cmdAlias: |
+      `/emoji alias :emoji: :new_alias:`
+      Create a new alias for an existing emoji, subject to community voting
+    cmdRemove: |
+      `/emoji remove :emoji:`
+      Request to delete an emoji or alias, subject to community voting
+    cmdReset: |
+      `/emoji reset proposal_uuid [new|failed|accepted|withdrawn|rejected]`
+      Reset proposal status ; typically only used if proposal is in a `failed` state.
+    cmdTally: |
+      `/emoji tally`
+      Tally all votes immediately and take action if the vote passed for all open proposals
+    cmdFakevote: |
+      `/emoji fakevote proposal_uuid [up|down|block|unblock]`
+      Add a upvote or downvote to a pending proposal. Can be run multiple times, actions are logged.

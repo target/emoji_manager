@@ -1,0 +1,52 @@
+
+
+When image posted to @emoji.manager (name of image is name of emoji)
+    posts light/dark preview in thread
+    posts voting instructions in thread
+    runs linter on it
+        if linter fails posts results of linter in-thread
+    posts button to propose emoji in #emoji
+
+When user clicks the button
+    posts preview in #emoji
+    posts original image
+    runs linter on it
+        if linter fails posts results of linter in-thread
+    posts voting rules
+    updates button on original post with link to proposaal post
+
+Other users reacts to image with :upvote:/:downvote: (or something)
+If voting threshold is met
+	Bot downloads the image
+	puts image in datastore 
+	log user that added emoji, and users that voted for emoji
+	calls admin.emoji.add with the remote url being
+		$hostname/slack_events/v1/emoji_management/images/{emojiname}
+
+When call to $hostname/slack_events/v1/emoji_management/images/{emojiname}
+	if datastore has emoji
+		return emoji
+		delete emoji from datastore?
+	else
+		return 404
+
+Other commands:
+
+/emoji status :emoji: - Show any proposals
+/emoji alias :orig: :alias:   -   Propose a new alias for existing emoji
+	Bot will post proposal, voting works the same
+
+/emoij remove :emoji: - Propose removal of existing emoji
+	Bot will post proposal, voting works the same
+
+/emoji review :emoji: - View the "audit log" for the emoji
+	Bot just posts who proposed and voted along with dates
+
+Voting threshold algorithm:
+	when @slack-admins reacts with :override-yes: emoji is added immedaitely
+	when @slack-admins reacts with :override-no: emoji is blocked
+	must wait >24hs from post before regular votes are counted
+	after 2 weeks from post, if threshold is not met, voting is closed
+	requires a "win by 5" (5:0, 6:1, etc) to pass. upload happens immediately when in the 1d-14d window (do not need to wait 2 weeks for new emoji) 
+
+

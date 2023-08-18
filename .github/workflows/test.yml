@@ -1,0 +1,40 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - '**'
+    paths-ignore:
+      - 'docs/**'
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+
+jobs:
+  services:
+    postgres:
+      image: postgres
+      options: >-
+        --health-cmd pg_isready
+        --health-interval 2s
+        --health-timeout 5s
+        --health-retries 30
+      volumes:
+        - ./db-migration/initdb.d/:/docker-entrypoint-initdb.d
+      ports:
+        - 5432:5432
+
+  🧪:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Check
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: check

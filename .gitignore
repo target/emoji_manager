@@ -1,0 +1,13 @@
+build
+.gradle
+emoji_manager.sqlite
+.idea/
+out/
+*.iml
+.classpath
+.project
+.settings/
+bin/
+local.conf
+local.yml
+docker.env

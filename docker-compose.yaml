@@ -1,0 +1,37 @@
+---
+version: '3.5'
+
+services:
+  db:
+    image: postgres:14.2-alpine
+    container_name: emojimanager-db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    ports:
+      - '5432:5432'
+    networks:
+      - app
+    volumes:
+      - ./db-migration/initdb.d/:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "sh", "-c", "pg_isready -U $$POSTGRES_USER -h $$(hostname -i)"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    env_file:
+      - ./docker.env
+    environment:
+      - EMOJI_MANAGER_CONFIG_FILES=/config/local.conf,/config/local.yaml
+    ports:
+      - 3000:3000
+    volumes:
+      - ./src/main/resources:/config
+    networks:
+      - app
+networks:
+  app:
