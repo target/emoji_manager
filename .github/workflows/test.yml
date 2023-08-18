@@ -11,20 +11,7 @@ on:
       - 'docs/**'
 
 jobs:
-  services:
-    postgres:
-      image: postgres
-      options: >-
-        --health-cmd pg_isready
-        --health-interval 2s
-        --health-timeout 5s
-        --health-retries 30
-      volumes:
-        - ./db-migration/initdb.d/:/docker-entrypoint-initdb.d
-      ports:
-        - 5432:5432
-
-  testing:
+   testing:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -38,3 +25,17 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: check
+
+    services:
+      postgres:
+        image: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 30
+        volumes:
+          - ./db-migration/initdb.d/:/docker-entrypoint-initdb.d
+        ports:
+          - 5432:5432
+
