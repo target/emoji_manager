@@ -24,7 +24,7 @@ jobs:
       ports:
         - 5432:5432
 
-  🧪:
+  testing:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
