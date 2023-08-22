@@ -15,7 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
+      - run: sudo systemctl start postgresql.service ; pg_isready
+      - run: cat db-migration/initdb.d/01_docker-bootstrap.sql | sudo -u postgres psql -f -
       - uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
@@ -23,19 +24,10 @@ jobs:
 
       - name: Check
         uses: gradle/gradle-build-action@v2
+        env:
+          DATABASE_HOST: localhost
         with:
           arguments: check
 
-    services:
-      postgres:
-        image: postgres
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 2s
-          --health-timeout 5s
-          --health-retries 30
-        volumes:
-          - ./db-migration/initdb.d/:/docker-entrypoint-initdb.d
-        ports:
-          - 5432:5432
+
 
