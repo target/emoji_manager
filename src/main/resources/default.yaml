@@ -2,7 +2,8 @@ text:
   intro: |
     Custom emoji are a community-supported effort in partnership with the Slack admins.
     Any team member in Slack can suggest a new emoji by posting an image file
-    _with the suggested emoji name as the file name_ in the emoji management channel <#${slack.slackEmojiChannel}>.
+    _with the suggested emoji name as the file name_ in a DM to the emoji manager, and clicking on the propose button. 
+    That will post the proposal in the emoji management channel <#${slack.slackEmojiChannel}>.
     If it receives 4 more upvotes than downvotes before ${votes.maxDuration} business days, it will be added.
     There is a comment period of ${votes.commentPeriod} business days to ensure everyone has a chance to see the proposal.
     
