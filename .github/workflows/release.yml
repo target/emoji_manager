@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  🚀:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -18,7 +18,7 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Setup Gradle
+      - name: Gradle Build
         uses: gradle/gradle-build-action@v2
         with:
           arguments: distTar
