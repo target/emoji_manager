@@ -64,7 +64,7 @@ class MessageHandler(private val config: Config, private val emojiService: Emoji
                     ctx.client().chatPostEphemeral { p ->
                         p.channel(event.channel)
                         p.user(event.user)
-                        p.text("Hi there! I no longer accept emoji proposals there. Instead, send me a DM of your image to propose a new emoji!")
+                        p.text("Hi there! I no longer accept emoji proposals here. Instead, send me a DM of your image to propose a new emoji!")
                     }
                 }
             }
