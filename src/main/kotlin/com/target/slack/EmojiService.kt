@@ -10,7 +10,6 @@ import com.target.liteforjdbc.Db
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
-import java.time.ZoneOffset
 import java.util.UUID
 
 data class TallyResult(val up: Int, val down: Int, val block: Int, val unblock: Int, val userReport: Int, val systemReport: Int)
