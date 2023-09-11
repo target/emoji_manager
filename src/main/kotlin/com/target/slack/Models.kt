@@ -95,6 +95,7 @@ class Proposals(private val db: Db) {
         const val FORCE = "large_green_circle"
         const val BLOCK = "no_entry_sign"
         const val WITHDRAW = "rewind"
+        const val REPORT = "small_orange_diamond"
 
         const val STATE_NEW = "new"
         const val STATE_ACCEPTED = "accepted"
@@ -306,6 +307,9 @@ class AuditLog(private val db: Db) {
         const val ACTION_PROPOSE = "propose:%"
         const val ACTION_VOTE_UP = "vote:up"
         const val ACTION_VOTE_DN = "vote:down"
+        const val ACTION_USER_REPORT = "user:report"
+        const val ACTION_USER_UNREPORT = "user:unreport"
+        const val ACTION_SYSTEM_REPORT = "system:report"
         const val ACTION_VOTE = "vote:%"
         const val ACTION_ADMIN_BLOCK = "admin:block"
         const val ACTION_ADMIN_UNBLOCK = "admin:unblock"

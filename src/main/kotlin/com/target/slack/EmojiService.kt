@@ -3,15 +3,17 @@ package com.target.slack
 import com.slack.api.Slack
 import com.slack.api.bolt.context.Context
 import com.slack.api.methods.AsyncMethodsClient
+import com.slack.api.methods.kotlin_extension.request.chat.blocks
 import com.slack.api.methods.response.files.FilesUploadResponse
 import com.slack.api.model.File
 import com.target.liteforjdbc.Db
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.UUID
 
-data class TallyResult(val up: Int, val down: Int, val block: Int, val unblock: Int)
+data class TallyResult(val up: Int, val down: Int, val block: Int, val unblock: Int, val userReport: Int, val systemReport: Int)
 
 class EmojiService(private val config: Config, private val db: Db) {
 
@@ -320,7 +322,7 @@ class EmojiService(private val config: Config, private val db: Db) {
         return Result.success(prop)
     }
 
-    fun recordVote(ts: String, user: String, action: String): Boolean {
+    fun recordVote(ctx: Context, ts: String, user: String, action: String): Boolean {
         var valid = false
         db.withTransaction {
             // Find the proposal
@@ -335,18 +337,71 @@ class EmojiService(private val config: Config, private val db: Db) {
                     )
                 )
                 valid = true
+
+                val tallyResult = tallyVotes(prop)
+                // Should we report this to the admins?
+                if (tallyResult.systemReport == 0 && tallyResult.down >= config.votes.downVoteThreshold) {
+                    logger.info("Proposal ${prop.id} has ${tallyResult.down} downvotes. Attempting to flag.")
+                    val r = ctx.client().reactionsAdd() {
+                        it.channel(config.slack.slackEmojiChannel)
+                        it.timestamp(ts)
+                        it.name(Proposals.REPORT)
+                    }
+
+                    if (r.isOk) {
+                        recordVote(ctx, ts, user, AuditLog.ACTION_SYSTEM_REPORT)
+
+                        if (config.slack.slackEmojiAdminChannel.isNotEmpty()) {
+                            logger.warn("${prop.id} has ${config.votes.downVoteThreshold} downvotes. Notify admins.")
+
+                            var body = when (prop.action) {
+                                Proposals.ACTION_ADD ->
+                                    ":heavy_plus_sign:`:${prop.emoji}:` "
+                                Proposals.ACTION_REMOVE ->
+                                    ":heavy_minus_sign:`:${prop.emoji}:` "
+                                else ->
+                                    ""
+                            }
+
+                            if (prop.alias) body += "(alias for `:${prop.cname}:` :${prop.cname}:) "
+
+                            body += "<${prop.permalink}|Thread> "
+                            if (tallyResult.block - tallyResult.unblock > 0) body += ":${Proposals.BLOCK}: "
+
+                            body += "${tallyResult.up}:${Proposals.UPVOTE}: ${tallyResult.down}:${Proposals.DOWNVOTE}: net: ${tallyResult.up - tallyResult.down}"
+                            if (tallyResult.up - tallyResult.down > config.votes.winBy) body += ":+1: "
+
+                            ctx.client().chatPostMessage { p ->
+                                p.channel(config.slack.slackEmojiAdminChannel)
+                                p.unfurlLinks(true)
+                                p.unfurlMedia(true)
+                                p.text("Auto reporting $body")
+                                p.blocks {
+                                    section {
+                                        markdownText("Auto reporting $body")
+                                    }
+                                }
+                            }
+                        }
+                    } else { // reaction failed
+                        if (r.error != "already_reacted") {
+                            logger.warn("Unable to flag proposal ${prop.id}: ${r.error}")
+                        }
+                    }
+                    logger.info(r.error)
+                }
             }
         }
         return valid
     }
 
-    fun withdrawProposal(ts: String) {
+    fun withdrawProposal(ctx: Context, ts: String) {
         db.withTransaction {
             val prop = proposals.findByThread(ts)
             if (prop != null) {
                 prop.state = Proposals.STATE_WITHDRAWN
                 proposals.upsert(prop)
-                recordVote(ts, prop.user, AuditLog.ACTION_SYSTEM_WITHDRAW)
+                recordVote(ctx, ts, prop.user, AuditLog.ACTION_SYSTEM_WITHDRAW)
             }
         }
     }
@@ -609,7 +664,7 @@ class EmojiService(private val config: Config, private val db: Db) {
      *
      */
     fun tallyVotes(prop: Proposal): TallyResult {
-        var tallyResult = TallyResult(0, 0, 0, 0)
+        var tallyResult = TallyResult(0, 0, 0, 0, 0, 0)
 
         val auditEntires = auditLog.findByProposal(prop.id)
         val proposal = auditEntires.filter { it.action == AuditLog.ACTION_PROPOSE_NEW || it.action == AuditLog.ACTION_PROPOSE_DEL }
@@ -617,13 +672,15 @@ class EmojiService(private val config: Config, private val db: Db) {
         val downVotes = auditEntires.filter { it.action == AuditLog.ACTION_VOTE_DN }
         val blockVotes = auditEntires.filter { it.action == AuditLog.ACTION_ADMIN_BLOCK }
         val unblockVotes = auditEntires.filter { it.action == AuditLog.ACTION_ADMIN_UNBLOCK }
+        val userReports = auditEntires.filter { it.action == AuditLog.ACTION_USER_REPORT }
+        val systemReports = auditEntires.filter { it.action == AuditLog.ACTION_SYSTEM_REPORT }
 
         if (proposal.size != 1) {
             logger.warn("Proposal ${prop.id} has no 'new' AuditEntry associated with it.  Bailing.")
             return tallyResult
         }
 
-        tallyResult = TallyResult(upVotes.size, downVotes.size, blockVotes.size, unblockVotes.size)
+        tallyResult = TallyResult(upVotes.size, downVotes.size, blockVotes.size, unblockVotes.size, userReports.size, systemReports.size)
 
         return tallyResult
     }

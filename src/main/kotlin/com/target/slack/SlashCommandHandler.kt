@@ -301,7 +301,7 @@ class SlashCommandHandler(private val config: Config, private val emojiService: 
                 r.text("Proposal not found.")
             }
         } else {
-            emojiService.recordVote(prop.thread, req.payload.userId, action)
+            emojiService.recordVote(ctx, prop.thread, req.payload.userId, action)
 
             ctx.respond { r ->
                 r.responseType("ephemeral")

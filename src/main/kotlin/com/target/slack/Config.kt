@@ -37,6 +37,7 @@ data class VoteConfig(
     val tallySchedule: Long = 30, // in minutes; how frequently to tally votes of all open proposals
     // Populate this via config file
     val calendarHolidays: List<LocalDate> = listOf(), // a list of dates in the format of YYYY-MM-DD (2023-01-02) that are considered holidays
+    val downVoteThreshold: Int = 5, // How many downvotes before admins are notified
 )
 
 data class SlackConfig(
@@ -46,6 +47,7 @@ data class SlackConfig(
     val slackBotToken: Masked,
     val slackEmojiChannel: String,
     val slackAdminUsers: List<String>,
+    val slackEmojiAdminChannel: String,
     val slackProposalChannels: List<String>,
     val slackHintChannels: List<String>,
 )
@@ -60,6 +62,7 @@ data class TextConfig(
     val force: String = "large_green_circle",
     val block: String = "no_entry_sign",
     val withdraw: String = "rewind",
+    val report: String = "small_orange_diamond",
 )
 
 data class HelpText(

@@ -39,6 +39,7 @@ There is an initial comment period of 1 business day where votes are not yet tal
 
 If you decide to withdraw your proposal, simply react to the proposal in `#emoji-management` with ⏪ (`:rewind:`) and `@Emoji Manager` will take it out of the running.
 
+Did someone submit an emoji that you think is inappropriate?  You can react with 🔸(`:small_orange_diamond:`) to alert the admins.  
 A few notes: 
 
  * You can only propose one emoji per message.  So don't try to upload 5 images at once- it wont work.  Do them as separate messages.
