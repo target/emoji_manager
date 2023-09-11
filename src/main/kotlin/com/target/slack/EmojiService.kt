@@ -86,7 +86,11 @@ class EmojiService(private val config: Config, private val db: Db) {
                 }
                 it.fileData(previewBytes)
                 it.initialComment(
-                    "<@$requester> has proposed a new emoji (`:$emojiname:`) $replaceWords!\n$comment"
+                    if (comment.isNullOrBlank()) {
+                        "<@$requester> has proposed a new emoji (`:$emojiname:`) $replaceWords!"
+                    } else {
+                        "<@$requester> has proposed a new emoji (`:$emojiname:`) $replaceWords!\n$comment"
+                    }
                 )
             }
         } catch (ex: Exception) {
