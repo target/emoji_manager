@@ -219,6 +219,10 @@ class ReactionHandler(private val config: Config, private val emojiService: Emoj
             logger.warn("${event.user} is reporting ${prop.id}  Notify admins.")
 
             val tallyResult = emojiService.tallyVotes(prop)
+
+            if (tallyResult.userReport > 0) {
+                return
+            }
             var body = when (prop.action) {
                 Proposals.ACTION_ADD ->
                     ":heavy_plus_sign:`:${prop.emoji}:` "
