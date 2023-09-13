@@ -146,6 +146,7 @@ database:
   autoMigrations: true # Auto-perform database schema migrations
 
 vote:
+  # Not setting these values means the default values will be used
   commentPeriod: 1 # in business days, optional
   maxDuration: 30 # in business days, optional
   winBy: 5 # the "win by", optional
