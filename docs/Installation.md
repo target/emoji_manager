@@ -14,7 +14,7 @@ The app must be installed as an Admin user, as it uses admin scopes to access th
 - Install to the Grid organization. You can do this from the https://api.slack.com/apps page for Emoji Manager
 - Install to the workspace. You can do this from the Enterprise Grid Management page (https://app.slack.com/manage/[TEAMID]/integrations/installed) and select the workspace to install in.  Because of how `@Emoji Manager` works, only install into a single workspace
 
-Once installed, create a public channel for voting, we suggest `#emoji-management`.  Additionally, create a private channel for the emoji admins to receive notifications in, we suggest `#emoji-admins`.  Add invite `@Emoji Manager` to both channels.
+Once installed, create a public channel for voting, we suggest `#emoji-management`.  Additionally, create a private channel for the emoji admins to receive notifications in, we suggest `#emoji-admins`. Invite `@Emoji Manager` to both channels.
 
 ## Application Configuration
 
