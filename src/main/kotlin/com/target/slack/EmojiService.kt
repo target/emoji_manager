@@ -384,7 +384,7 @@ class EmojiService(private val config: Config, private val db: Db) {
                         }
                     } else { // reaction failed
                         if (r.error != "already_reacted") {
-                            logger.warn("Unable to flag proposal ${prop.id}: ${r.error}")
+                            logger.error("Unable to flag proposal ${prop.id}: ${r.error}")
                         }
                     }
                     logger.info(r.error)
