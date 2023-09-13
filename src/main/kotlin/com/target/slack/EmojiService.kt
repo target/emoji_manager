@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID
 
-data class TallyResult(val up: Int, val down: Int, val block: Int, val unblock: Int, val userReport: Int, val systemReport: Int)
+data class TallyResult(val up: Int = 0, val down: Int = 0, val block: Int = 0, val unblock: Int = 0, val userReport: Int = 0, val systemReport: Int = 0)
 
 class EmojiService(private val config: Config, private val db: Db) {
 
@@ -663,7 +663,7 @@ class EmojiService(private val config: Config, private val db: Db) {
      *
      */
     fun tallyVotes(prop: Proposal): TallyResult {
-        var tallyResult = TallyResult(0, 0, 0, 0, 0, 0)
+        var tallyResult = TallyResult()
 
         val auditEntires = auditLog.findByProposal(prop.id)
         val proposal = auditEntires.filter { it.action == AuditLog.ACTION_PROPOSE_NEW || it.action == AuditLog.ACTION_PROPOSE_DEL }
