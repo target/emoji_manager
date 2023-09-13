@@ -351,7 +351,7 @@ class EmojiService(private val config: Config, private val db: Db) {
                         recordVote(ctx, ts, user, AuditLog.ACTION_SYSTEM_REPORT)
 
                         if (config.slack.slackEmojiAdminChannel.isNotEmpty()) {
-                            logger.warn("${prop.id} has ${config.votes.downVoteThreshold} downvotes. Notify admins.")
+                            logger.warn("${prop.id} has ${config.votes.downVoteThreshold} downvotes. Notifying admins.")
 
                             var body = when (prop.action) {
                                 Proposals.ACTION_ADD ->
