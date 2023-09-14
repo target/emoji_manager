@@ -14,12 +14,21 @@ The app must be installed as an Admin user, as it uses admin scopes to access th
 - Install to the Grid organization. You can do this from the https://api.slack.com/apps page for Emoji Manager
 - Install to the workspace. You can do this from the Enterprise Grid Management page (https://app.slack.com/manage/[TEAMID]/integrations/installed) and select the workspace to install in.  Because of how `@Emoji Manager` works, only install into a single workspace
 
+Once installed, create a public channel for voting, we suggest `#emoji-management`.  Additionally, create a private channel for the emoji admins to receive notifications in, we suggest `#emoji-admins`. Invite `@Emoji Manager` to both channels.
+
 ## Application Configuration
 
 The application can be configured using [Hocon](https://github.com/lightbend/config) and/or Yaml configuration files. You can specify as many configuration files as you need, to allow splitting the file for different environments, secrets management tools, etc. A proposed layout:
 
 `prod.yaml` - Production settings:
 ```yaml
+slack:
+  slackEmojiChannel: C123456789
+  slackEmojiAdminChannel: C234567890
+  slackAdminUsers:
+    - U12345678
+    - U23456789
+
 server:
   urlPrefix:  "https://myhost.example.com"
 
@@ -137,9 +146,11 @@ database:
   autoMigrations: true # Auto-perform database schema migrations
 
 vote:
+  # Not setting these values means the default values will be used
   commentPeriod: 1 # in business days, optional
   maxDuration: 30 # in business days, optional
   winBy: 5 # the "win by", optional
+  downVoteThreshold: 5 # the threshold to notify admin users, optional
   tallySchedule: 30 # in minutes- how often the tally should run, optional
   calendarHolidays: # Array of dates to exclude from business days, optional
     - 2023-01-02 # Must be in YYYY-MM-DD format
@@ -150,6 +161,7 @@ slack:
   slackAppToken: xoxa-XXXXX # From Slack installation, optional
   slackBotToken: xoxb-XXXXX # From Slack installation, required
   slackEmojiChannel: C123456789 # Slack Channel ID to conduct voting in, required
+  slackEmojiAdminChannel: C234567890 # Slack Channel ID for admin notifications, optional
   slackAdminUsers: # Array if Slack User IDs who can use admin features
     - U12345678
     - U23456789

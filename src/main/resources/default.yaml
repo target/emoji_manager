@@ -10,6 +10,8 @@ text:
     You may withdraw your proposal by reacting to the message with :${text.withdraw}: Note that only the original author can do this, and it cannot be undone.
     
     Proposals for aliases and emoji removals can be done with shortcuts in the emoji management channel.
+    
+    If you would like to report an emoji to the admins, react to the proposal with :${text.report}: and the admins will be notified. 
 
   homeAdvanced: "Advanced slash commands can be used with the `/emoji` command. See `/emoji help` for more details."
   upvote: "white_check_mark"
@@ -17,6 +19,7 @@ text:
   force: "large_green_circle"
   block: "no_entry_sign"
   withdraw: "rewind"
+  report: "small_orange_diamond"
 
   help: 
     general: |
