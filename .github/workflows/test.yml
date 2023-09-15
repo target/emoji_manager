@@ -14,7 +14,7 @@ jobs:
    testing:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: sudo systemctl start postgresql.service ; pg_isready
       - run: cat db-migration/initdb.d/01_docker-bootstrap.sql | sudo -u postgres psql -f -
       - uses: actions/setup-java@v3
