@@ -25,7 +25,7 @@ websocket = "1.1"
 # https://mvnrepository.com/artifact/org.glassfish.tyrus.bundles/tyrus-standalone-client
 tyrus = "1.20" # bolt does not support newer than v1.x
 # https://mvnrepository.com/artifact/com.target/lite-for-jdbc
-liteForJdbc = "2.2.0"
+liteForJdbc = "2.3.0"
 
 ktlint = "11.2.0"
 
