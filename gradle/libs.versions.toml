@@ -3,7 +3,7 @@
 kotlin = "1.8.20"
 
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
-slf4j = "2.0.7"
+slf4j = "2.0.9"
 # https://mvnrepository.com/artifact/com.sksamuel.hoplite/hoplite-core
 hoplite = "2.7.5"
 # https://mvnrepository.com/artifact/org.http4k/http4k-core
