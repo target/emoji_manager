@@ -1,0 +1,16 @@
+name: PR Image Docker Cleanup
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  get_tags:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cleanup
+        run: |
+          HUB_TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d "{\"username\": \"${{secrets.DOCKERHUB_USERNAME}}\", \"password\": \"${{secrets.DOCKERHUB_TOKEN}}\"}" https://hub.docker.com/v2/users/login/ | jq -r .token)
+          curl -i -X DELETE \
+            -H "Accept: application/json" \
+            -H "Authorization: JWT $HUB_TOKEN" \
+            https://hub.docker.com/v2/repositories/target/emoji_manager/tags/pr-${{ github.event.number }}/
