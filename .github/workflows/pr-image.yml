@@ -3,6 +3,11 @@ name: Build PR Image
 on: issue_comment
 
 jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo '${{ toJson(github) }}'
+
   build:
     runs-on: ubuntu-latest
 
