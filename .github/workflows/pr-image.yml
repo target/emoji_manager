@@ -6,15 +6,30 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    if: |
-      github.event.issue.pull_request && contains(github.event.comment.body, '/build-docker-image') &&
-      ( github.event.comment.author_association == 'MEMBER' ||
-        github.event.comment.author_association == 'OWNER' )
+    #if: |
+    #  github.event.issue.pull_request && contains(github.event.comment.body, '/build-docker-image') &&
+    #  ( github.event.comment.author_association == 'MEMBER' ||
+    #    github.event.comment.author_association == 'OWNER' )
 
     steps:
+      - name: Check for /build-docker-image
+        id: command
+        uses: xt0rted/slash-command-action@v2
+        with:
+          command: build-docker-image
+          reaction: "true"
+          reaction-type: eyes
+          allow-edits: "false"
+          permission-level: admin
+
+      # - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      #   with:
+      #     ref: refs/pull/${{ github.event.issue.number }}/merge
+
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
-          ref: refs/pull/${{ github.event.issue.number }}/merge
+          ref: ${{steps.command.outputs.command-arguments }}
+      
 
       - uses: actions/setup-java@0ab4596768b603586c0de567f2430c30f5b0d2b0 # v3.13.0
         with:
