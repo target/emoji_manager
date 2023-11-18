@@ -15,7 +15,7 @@ okhttp = "4.11.0"
 # https://mvnrepository.com/artifact/org.postgresql/postgresql
 postgresql = "42.6.0"
 # https://mvnrepository.com/artifact/org.flywaydb/flyway-core
-flyway = "9.18.0"
+flyway = "10.0.1"
 # https://mvnrepository.com/artifact/com.sksamuel.scrimage/scrimage-core
 scrimage = "4.0.39"
 # https://mvnrepository.com/artifact/com.slack.api/bolt
