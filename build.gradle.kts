@@ -38,7 +38,7 @@ configurations.all {
 dependencies {
     implementation(libs.liteForJdbc)
     implementation(libs.postgresql)
-    implementation(libs.flyway)
+    implementation(libs.bundles.flyway)
     implementation(libs.okhttp)
     implementation(libs.bundles.scrimage)
     implementation(libs.bundles.bolt)

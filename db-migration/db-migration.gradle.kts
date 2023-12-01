@@ -1,6 +1,10 @@
 buildscript {
+    repositories {
+        mavenCentral()
+    }
     dependencies {
         classpath(libs.postgresql)
+        classpath(libs.bundles.flyway)
     }
 }
 

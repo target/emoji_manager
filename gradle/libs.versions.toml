@@ -37,7 +37,8 @@ boltServlet = { module = "com.slack.api:bolt-servlet", version.ref = "bolt" }
 boltSocketMode = { module = "com.slack.api:bolt-socket-mode", version.ref = "bolt" }
 boltKotlinModel = { module = "com.slack.api:slack-api-model-kotlin-extension", version.ref = "bolt" }
 boltKotlinClient = { module = "com.slack.api:slack-api-client-kotlin-extension", version.ref = "bolt" }
-flyway = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 hoplite-core = { module = "com.sksamuel.hoplite:hoplite-core", version.ref = "hoplite" }
 hoplite-hocon = { module = "com.sksamuel.hoplite:hoplite-hocon", version.ref = "hoplite" }
 hoplite-yaml = { module = "com.sksamuel.hoplite:hoplite-yaml", version.ref = "hoplite" }
@@ -61,6 +62,7 @@ scrimage = ["scrimage-core", "scrimage-filters"]
 jackson = ["jacksonDatabind", "jacksonKotlin"]
 bolt = ["boltCore", "boltHttp4k", "boltServlet", "boltSocketMode", "boltKotlinModel", "boltKotlinClient"]
 slf4j = ["slf4j-api", "slf4j-simple"]
+flyway = ["flyway-core", "flyway-postgresql"]
 
 [plugins]
 flyway = { id = "org.flywaydb.flyway", version.ref = "flyway" }
