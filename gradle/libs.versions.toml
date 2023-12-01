@@ -9,17 +9,17 @@ hoplite = "2.7.5"
 # https://mvnrepository.com/artifact/org.http4k/http4k-core
 http4k = "5.10.2.0"
 # https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
-jackson = "2.15.2"
+jackson = "2.16.0"
 # https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
 okhttp = "4.11.0"
 # https://mvnrepository.com/artifact/org.postgresql/postgresql
 postgresql = "42.6.0"
 # https://mvnrepository.com/artifact/org.flywaydb/flyway-core
-flyway = "9.18.0"
+flyway = "10.0.1"
 # https://mvnrepository.com/artifact/com.sksamuel.scrimage/scrimage-core
-scrimage = "4.0.39"
+scrimage = "4.1.1"
 # https://mvnrepository.com/artifact/com.slack.api/bolt
-bolt = "1.32.0"
+bolt = "1.36.0"
 # https://mvnrepository.com/artifact/javax.websocket/javax.websocket-api
 websocket = "1.1"
 # https://mvnrepository.com/artifact/org.glassfish.tyrus.bundles/tyrus-standalone-client
@@ -37,7 +37,8 @@ boltServlet = { module = "com.slack.api:bolt-servlet", version.ref = "bolt" }
 boltSocketMode = { module = "com.slack.api:bolt-socket-mode", version.ref = "bolt" }
 boltKotlinModel = { module = "com.slack.api:slack-api-model-kotlin-extension", version.ref = "bolt" }
 boltKotlinClient = { module = "com.slack.api:slack-api-client-kotlin-extension", version.ref = "bolt" }
-flyway = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 hoplite-core = { module = "com.sksamuel.hoplite:hoplite-core", version.ref = "hoplite" }
 hoplite-hocon = { module = "com.sksamuel.hoplite:hoplite-hocon", version.ref = "hoplite" }
 hoplite-yaml = { module = "com.sksamuel.hoplite:hoplite-yaml", version.ref = "hoplite" }
@@ -61,6 +62,7 @@ scrimage = ["scrimage-core", "scrimage-filters"]
 jackson = ["jacksonDatabind", "jacksonKotlin"]
 bolt = ["boltCore", "boltHttp4k", "boltServlet", "boltSocketMode", "boltKotlinModel", "boltKotlinClient"]
 slf4j = ["slf4j-api", "slf4j-simple"]
+flyway = ["flyway-core", "flyway-postgresql"]
 
 [plugins]
 flyway = { id = "org.flywaydb.flyway", version.ref = "flyway" }

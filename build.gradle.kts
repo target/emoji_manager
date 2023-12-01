@@ -38,7 +38,7 @@ configurations.all {
 dependencies {
     implementation(libs.liteForJdbc)
     implementation(libs.postgresql)
-    implementation(libs.flyway)
+    implementation(libs.bundles.flyway)
     implementation(libs.okhttp)
     implementation(libs.bundles.scrimage)
     implementation(libs.bundles.bolt)
@@ -49,7 +49,7 @@ dependencies {
     implementation(libs.tyrusClient)
     implementation(libs.bundles.slf4j)
 
-    testImplementation("com.h2database:h2:2.2.222")
+    testImplementation("com.h2database:h2:2.2.224")
     testImplementation(kotlin("test-junit"))
 }
 
