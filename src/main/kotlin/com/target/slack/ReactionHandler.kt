@@ -2,7 +2,6 @@ package com.target.slack
 
 import com.slack.api.Slack
 import com.slack.api.bolt.context.builtin.EventContext
-import com.slack.api.methods.kotlin_extension.request.chat.blocks
 import com.slack.api.model.event.ReactionAddedEvent
 import com.slack.api.model.event.ReactionRemovedEvent
 import org.slf4j.Logger
@@ -240,17 +239,7 @@ class ReactionHandler(private val config: Config, private val emojiService: Emoj
             body += "${tallyResult.up}:${Proposals.UPVOTE}: ${tallyResult.down}:${Proposals.DOWNVOTE}: net: ${tallyResult.up - tallyResult.down}"
             if (tallyResult.up - tallyResult.down > config.votes.winBy) body += ":+1: "
 
-            ctx.client().chatPostMessage { p ->
-                p.channel(config.slack.slackEmojiAdminChannel)
-                p.unfurlLinks(true)
-                p.unfurlMedia(true)
-                p.text("<@${event.user}> has reported $body")
-                p.blocks {
-                    section {
-                        markdownText("<@${event.user}> has reported $body")
-                    }
-                }
-            }
+            emojiService.postAdminChannelMessage(ctx.client(), "<@${event.user}> has reported $body")
         }
     }
 
