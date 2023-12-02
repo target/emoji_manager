@@ -11,7 +11,7 @@ http4k = "5.10.2.0"
 # https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
 jackson = "2.16.0"
 # https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
-okhttp = "4.11.0"
+okhttp = "4.12.0"
 # https://mvnrepository.com/artifact/org.postgresql/postgresql
 postgresql = "42.6.0"
 # https://mvnrepository.com/artifact/org.flywaydb/flyway-core
