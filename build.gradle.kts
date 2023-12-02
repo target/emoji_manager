@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.10")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.21")
         classpath(libs.ktlint)
     }
 }
