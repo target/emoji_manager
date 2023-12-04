@@ -2,6 +2,7 @@ package com.target.slack
 
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.Position
+import com.sksamuel.scrimage.ScaleMethod
 import com.sksamuel.scrimage.color.RGBColor
 import com.sksamuel.scrimage.format.Format
 import com.sksamuel.scrimage.format.FormatDetector
@@ -102,9 +103,9 @@ object ImageHelp {
                 if (width > MAX_EMOJI_IMAGE_SIZE || height > MAX_EMOJI_IMAGE_SIZE) {
                     val emojiSm = run {
                         if (height > width) {
-                            scaleToHeight(MAX_EMOJI_IMAGE_SIZE)
+                            scaleToHeight(MAX_EMOJI_IMAGE_SIZE, ScaleMethod.Lanczos3)
                         } else {
-                            scaleToWidth(MAX_EMOJI_IMAGE_SIZE)
+                            scaleToWidth(MAX_EMOJI_IMAGE_SIZE, ScaleMethod.Lanczos3)
                         }
                     }
                     val resizedSize = emojiSm.bytes(PngWriter()).size
@@ -146,16 +147,16 @@ object ImageHelp {
     private fun generatePreviewFrame(srcImage: ImmutableImage): ImmutableImage {
         val emoji = srcImage.run {
             if (height > width) {
-                scaleToHeight(MIN_EMOJI_IMAGE_SIZE)
+                scaleToHeight(MIN_EMOJI_IMAGE_SIZE, ScaleMethod.Lanczos3)
             } else {
-                scaleToWidth(MIN_EMOJI_IMAGE_SIZE)
+                scaleToWidth(MIN_EMOJI_IMAGE_SIZE, ScaleMethod.Lanczos3)
             }
         }
         val emojiSm = srcImage.run {
             if (height > width) {
-                scaleToHeight(SM_EMOJI_IMAGE_SIZE)
+                scaleToHeight(SM_EMOJI_IMAGE_SIZE, ScaleMethod.Lanczos3)
             } else {
-                scaleToWidth(SM_EMOJI_IMAGE_SIZE)
+                scaleToWidth(SM_EMOJI_IMAGE_SIZE, ScaleMethod.Lanczos3)
             }
         }
         val emojiLight = ImmutableImage.create(PREVIEW_EMOJI_IMAGE_SIZE, PREVIEW_EMOJI_IMAGE_SIZE).fill(lightBackground).overlay(emoji, Position.Center)
