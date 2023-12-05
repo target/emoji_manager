@@ -370,17 +370,7 @@ class EmojiService(private val config: Config, private val db: Db) {
                             body += "${tallyResult.up}:${Proposals.UPVOTE}: ${tallyResult.down}:${Proposals.DOWNVOTE}: net: ${tallyResult.up - tallyResult.down}"
                             if (tallyResult.up - tallyResult.down > config.votes.winBy) body += ":+1: "
 
-                            ctx.client().chatPostMessage { p ->
-                                p.channel(config.slack.slackEmojiAdminChannel)
-                                p.unfurlLinks(true)
-                                p.unfurlMedia(true)
-                                p.text("Auto reporting $body")
-                                p.blocks {
-                                    section {
-                                        markdownText("Auto reporting $body")
-                                    }
-                                }
-                            }
+                            postAdminChannelMessage("Auto reporting $body")
                         }
                     } else { // reaction failed
                         if (r.error != "already_reacted") {
@@ -448,6 +438,7 @@ class EmojiService(private val config: Config, private val db: Db) {
                 audit.action = AuditLog.ACTION_SYSTEM_FAIL
                 audit.note = "Failed to create alias. Slack response: ${r.error}"
                 error = r.error
+                postAdminChannelMessage(":warning: Failed to create alias ${prop.emoji} in Slack. Proposal: <${prop.permalink}|${prop.id}> Error: ${r.error}")
             }
             auditLog.insert(audit)
         }
@@ -502,6 +493,7 @@ class EmojiService(private val config: Config, private val db: Db) {
                 audit.note = "Failed to upload emoji. Slack response: ${r.error}"
 
                 error = r.error
+                postAdminChannelMessage(":warning: Failed to upload ${prop.emoji} to Slack. Proposal: <${prop.permalink}|${prop.id}> Error: ${r.error}")
             }
             auditLog.insert(audit)
         }
@@ -554,6 +546,7 @@ class EmojiService(private val config: Config, private val db: Db) {
                 audit.action = AuditLog.ACTION_SYSTEM_FAIL
                 audit.note = "Failed to remove emoji. Slack response: ${r.error}"
                 error = r.error
+                postAdminChannelMessage(":warning: Failed to remove $name from Slack. Proposal: <${prop.permalink}|${prop.id}> Error: ${r.error}")
             }
         }
 
@@ -757,5 +750,22 @@ class EmojiService(private val config: Config, private val db: Db) {
 
     fun userIsAdmin(user: String): Boolean {
         return (user in config.slack.slackAdminUsers)
+    }
+
+    fun postAdminChannelMessage(message: String) {
+        val client = Slack.getInstance().methods(config.slack.slackBotToken.value)
+        if (config.slack.slackEmojiAdminChannel.isNotEmpty()) {
+            client.chatPostMessage { p ->
+                p.channel(config.slack.slackEmojiAdminChannel)
+                p.unfurlLinks(true)
+                p.unfurlMedia(true)
+                p.text(message)
+                p.blocks {
+                    section {
+                        markdownText(message)
+                    }
+                }
+            }
+        }
     }
 }
