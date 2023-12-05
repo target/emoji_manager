@@ -239,7 +239,7 @@ class ReactionHandler(private val config: Config, private val emojiService: Emoj
             body += "${tallyResult.up}:${Proposals.UPVOTE}: ${tallyResult.down}:${Proposals.DOWNVOTE}: net: ${tallyResult.up - tallyResult.down}"
             if (tallyResult.up - tallyResult.down > config.votes.winBy) body += ":+1: "
 
-            emojiService.postAdminChannelMessage(ctx.client(), "<@${event.user}> has reported $body")
+            emojiService.postAdminChannelMessage("<@${event.user}> has reported $body")
         }
     }
 
