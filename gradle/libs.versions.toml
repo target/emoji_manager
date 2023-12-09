@@ -13,7 +13,7 @@ jackson = "2.16.0"
 # https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
 okhttp = "4.12.0"
 # https://mvnrepository.com/artifact/org.postgresql/postgresql
-postgresql = "42.6.0"
+postgresql = "42.7.1"
 # https://mvnrepository.com/artifact/org.flywaydb/flyway-core
 flyway = "10.1.0"
 # https://mvnrepository.com/artifact/com.sksamuel.scrimage/scrimage-core
