@@ -1,20 +1,26 @@
 name: Build PR Image
 
 on: issue_comment
+permissions:
+  issues: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    if: |
-      github.event.issue.pull_request && contains(github.event.comment.body, '/build-docker-image') &&
-      ( github.event.comment.author_association == 'MEMBER' ||
-        github.event.comment.author_association == 'OWNER' )
-
     steps:
+      - name: Check for /build_docker_image
+        id: command
+        uses: xt0rted/slash-command-action@bf51f8f5f4ea3d58abc7eca58f77104182b23e88 # v2.0.0
+        with:
+          command: build_docker_image
+          reaction: "false"
+          allow-edits: "false"
+          permission-level: admin
+
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
-          ref: refs/pull/${{ github.event.issue.number }}/merge
+          ref: ${{steps.command.outputs.command-arguments }}
 
       - uses: actions/setup-java@b6e674f4b717d7b0ae3baee0fbe79f498905dfde # v1.4.4
         with:
