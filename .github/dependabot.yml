@@ -1,7 +1,7 @@
 # configuration options available at https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 
 # This configuration implements every package-ecosystem entry with the following logic:
-# - run Sunday's at midnight at a timeframe that allows TII team members to benefit from dependabot runs
+# - run Thursdays's. Typical schedule involves performing updates weekly on Fridays
 # - only manage direct dependencies, as opposed to transient dependencies which are harder to maintain at scale
 
 version: 2
@@ -10,9 +10,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "sunday"
+      day: "thursday"
       time: "00:00"
-      timezone: "Asia/Kolkata"
+      timezone: "America/Chicago"
     allow:
       - dependency-type: "direct"
 
@@ -20,9 +20,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "sunday"
+      day: "thursday"
       time: "00:00"
-      timezone: "Asia/Kolkata"
+      timezone: "America/Chicago"
     allow:
       - dependency-type: "direct"
 
@@ -30,9 +30,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "sunday"
+      day: "thursday"
       time: "00:00"
-      timezone: "Asia/Kolkata"
+      timezone: "America/Chicago"
     allow:
       - dependency-type: "direct"
 
@@ -40,9 +40,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "sunday"
+      day: "thursday"
       time: "00:00"
-      timezone: "Asia/Kolkata"
+      timezone: "America/Chicago"
     allow:
       - dependency-type: "direct"
 
@@ -50,9 +50,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "sunday"
+      day: "thursday"
       time: "00:00"
-      timezone: "Asia/Kolkata"
+      timezone: "America/Chicago"
     allow:
       - dependency-type: "direct"
 
@@ -60,9 +60,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "sunday"
+      day: "thursday"
       time: "00:00"
-      timezone: "Asia/Kolkata"
+      timezone: "America/Chicago"
     allow:
       - dependency-type: "direct"
 
@@ -70,9 +70,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "sunday"
+      day: "thursday"
       time: "00:00"
-      timezone: "Asia/Kolkata"
+      timezone: "America/Chicago"
     allow:
       - dependency-type: "direct"
 
@@ -80,9 +80,13 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "sunday"
+      day: "thursday"
       time: "00:00"
-      timezone: "Asia/Kolkata"
+      timezone: "America/Chicago"
+    groups:
+      pipeline:
+        patterns:
+          - "*"
     allow:
       - dependency-type: "direct"
 
@@ -90,9 +94,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "sunday"
+      day: "thursday"
       time: "00:00"
-      timezone: "Asia/Kolkata"
+      timezone: "America/Chicago"
     allow:
       - dependency-type: "direct"
 
@@ -100,9 +104,13 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "sunday"
+      day: "thursday"
       time: "00:00"
-      timezone: "Asia/Kolkata"
+      timezone: "America/Chicago"
+    groups:
+      jars:
+        patterns:
+          - "*"
     allow:
       - dependency-type: "direct"
 
@@ -110,9 +118,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "sunday"
+      day: "thursday"
       time: "00:00"
-      timezone: "Asia/Kolkata"
+      timezone: "America/Chicago"
     allow:
       - dependency-type: "direct"
 
@@ -120,9 +128,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "sunday"
+      day: "thursday"
       time: "00:00"
-      timezone: "Asia/Kolkata"
+      timezone: "America/Chicago"
     allow:
       - dependency-type: "direct"
 
@@ -130,9 +138,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "sunday"
+      day: "thursday"
       time: "00:00"
-      timezone: "Asia/Kolkata"
+      timezone: "America/Chicago"
     allow:
       - dependency-type: "direct"
 
@@ -140,9 +148,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "sunday"
+      day: "thursday"
       time: "00:00"
-      timezone: "Asia/Kolkata"
+      timezone: "America/Chicago"
     allow:
       - dependency-type: "direct"
 
@@ -150,8 +158,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "sunday"
+      day: "thursday"
       time: "00:00"
-      timezone: "Asia/Kolkata"
+      timezone: "America/Chicago"
     allow:
       - dependency-type: "direct"
