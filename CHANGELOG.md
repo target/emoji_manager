@@ -1,3 +1,16 @@
+v2.2.0
+ - Add more admin notification
+ - Change image scaling algorithm to lanczos3 to improve preview image quality
+ - Update dependencies
+
+v2.1.0
+ - Add an admin channel notification feature to report downvoted proposals
+ - Update dependencies
+
+v2.0.0
+ - Initial Open Source release
+ - Refactored to work without Target-specific technologies
+
 v1.0.1
  - Update dependancies
  - Fix tallyVotes to expire blocked proposals
