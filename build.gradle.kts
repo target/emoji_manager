@@ -19,7 +19,7 @@ ktlint {
     version.set("0.48.2")
 }
 group = "com.target.slack"
-version = "2.0.0"
+version = "2.2.0"
 
 repositories {
     mavenCentral()
