@@ -3,19 +3,19 @@
 kotlin = "1.8.20"
 
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
-slf4j = "2.0.9"
+slf4j = "2.0.11"
 # https://mvnrepository.com/artifact/com.sksamuel.hoplite/hoplite-core
 hoplite = "2.7.5"
 # https://mvnrepository.com/artifact/org.http4k/http4k-core
-http4k = "5.11.0.0"
+http4k = "5.12.1.0"
 # https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
-jackson = "2.16.0"
+jackson = "2.16.1"
 # https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
 okhttp = "4.12.0"
 # https://mvnrepository.com/artifact/org.postgresql/postgresql
 postgresql = "42.7.1"
 # https://mvnrepository.com/artifact/org.flywaydb/flyway-core
-flyway = "10.3.0"
+flyway = "10.4.1"
 # https://mvnrepository.com/artifact/com.sksamuel.scrimage/scrimage-core
 scrimage = "4.1.1"
 # https://mvnrepository.com/artifact/com.slack.api/bolt
