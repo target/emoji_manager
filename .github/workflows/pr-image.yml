@@ -28,7 +28,7 @@ jobs:
           java-version: 17
 
       - name: Gradle Build
-        uses: gradle/gradle-build-action@8cbcb9948b5892387aed077daf6f90e1f0ba5b27 # v2.11.0
+        uses: gradle/gradle-build-action@3b1b3b9a2104c2b47fbae53f3938079c00c9bb87 # v3.0.0
         with:
             arguments: distTar
 
@@ -37,7 +37,7 @@ jobs:
 
       - name: Set Docker metadata
         id: meta
-        uses: docker/metadata-action@31cebacef4805868f9ce9a0cb03ee36c32df2ac4 # v5.3.0
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
           images: target/emoji_manager
           tags: type=raw,value=pr-${{ github.event.issue.number }}
