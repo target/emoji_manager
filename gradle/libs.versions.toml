@@ -7,19 +7,19 @@ slf4j = "2.0.12"
 # https://mvnrepository.com/artifact/com.sksamuel.hoplite/hoplite-core
 hoplite = "2.7.5"
 # https://mvnrepository.com/artifact/org.http4k/http4k-core
-http4k = "5.13.8.0"
+http4k = "5.14.0.0"
 # https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
-jackson = "2.16.1"
+jackson = "2.17.0"
 # https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
 okhttp = "4.12.0"
 # https://mvnrepository.com/artifact/org.postgresql/postgresql
 postgresql = "42.7.2"
 # https://mvnrepository.com/artifact/org.flywaydb/flyway-core
-flyway = "10.8.1"
+flyway = "10.9.1"
 # https://mvnrepository.com/artifact/com.sksamuel.scrimage/scrimage-core
 scrimage = "4.1.1"
 # https://mvnrepository.com/artifact/com.slack.api/bolt
-bolt = "1.38.2"
+bolt = "1.38.3"
 # https://mvnrepository.com/artifact/javax.websocket/javax.websocket-api
 websocket = "1.1"
 # https://mvnrepository.com/artifact/org.glassfish.tyrus.bundles/tyrus-standalone-client
