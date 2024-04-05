@@ -19,7 +19,7 @@ jobs:
           java-version: 17
 
       - name: Gradle Build
-        uses: gradle/actions/setup-gradle@3b1b3b9a2104c2b47fbae53f3938079c00c9bb87 # v3.0.0
+        uses: gradle/actions/setup-gradle@e24011a3b5db78bd5ab798036042d9312002f252 # v3.2.0
         with:
           arguments: distTar
 
