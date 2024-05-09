@@ -9,7 +9,7 @@ hoplite = "2.7.5"
 # https://mvnrepository.com/artifact/org.http4k/http4k-core
 http4k = "5.18.2.0"
 # https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
-jackson = "2.17.0"
+jackson = "2.17.1"
 # https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
 okhttp = "4.12.0"
 # https://mvnrepository.com/artifact/org.postgresql/postgresql
