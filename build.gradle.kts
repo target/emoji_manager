@@ -3,14 +3,14 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.23")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0")
         classpath(libs.ktlint)
     }
 }
 
 plugins {
     application
-    kotlin("jvm") version "1.9.23"
+    kotlin("jvm") version "2.0.0"
     id("jacoco")
     alias(libs.plugins.ktlint)
 }
