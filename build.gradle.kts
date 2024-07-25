@@ -49,7 +49,7 @@ dependencies {
     implementation(libs.tyrusClient)
     implementation(libs.bundles.slf4j)
 
-    testImplementation("com.h2database:h2:2.2.224")
+    testImplementation("com.h2database:h2:2.3.230")
     testImplementation(kotlin("test-junit"))
 }
 
