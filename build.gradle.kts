@@ -3,14 +3,14 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.21")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0")
         classpath(libs.ktlint)
     }
 }
 
 plugins {
     application
-    kotlin("jvm") version "1.9.21"
+    kotlin("jvm") version "2.0.0"
     id("jacoco")
     alias(libs.plugins.ktlint)
 }
@@ -19,7 +19,7 @@ ktlint {
     version.set("0.48.2")
 }
 group = "com.target.slack"
-version = "2.2.0"
+version = "2.2.2"
 
 repositories {
     mavenCentral()
