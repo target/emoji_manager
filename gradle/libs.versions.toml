@@ -11,11 +11,11 @@ http4k = "6.15.1.0"
 # https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
 jackson = "2.19.1"
 # https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
-okhttp = "5.0.0"
+okhttp = "5.1.0"
 # https://mvnrepository.com/artifact/org.postgresql/postgresql
 postgresql = "42.7.7"
 # https://mvnrepository.com/artifact/org.flywaydb/flyway-core
-flyway = "11.10.1"
+flyway = "11.10.2"
 # https://mvnrepository.com/artifact/com.sksamuel.scrimage/scrimage-core
 scrimage = "4.3.2"
 # https://mvnrepository.com/artifact/com.slack.api/bolt
