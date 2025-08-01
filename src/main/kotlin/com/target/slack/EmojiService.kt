@@ -4,7 +4,7 @@ import com.slack.api.Slack
 import com.slack.api.bolt.context.Context
 import com.slack.api.methods.AsyncMethodsClient
 import com.slack.api.methods.kotlin_extension.request.chat.blocks
-import com.slack.api.methods.response.files.FilesUploadResponse
+import com.slack.api.methods.request.files.CompleteUploadExternalRequest
 import com.slack.api.model.File
 import com.target.liteforjdbc.Db
 import org.slf4j.Logger
@@ -13,6 +13,8 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 data class TallyResult(val up: Int = 0, val down: Int = 0, val block: Int = 0, val unblock: Int = 0, val userReport: Int = 0, val systemReport: Int = 0)
+
+data class Files(val id: String, val title: String)
 
 class EmojiService(private val config: Config, private val db: Db) {
 
@@ -76,34 +78,66 @@ class EmojiService(private val config: Config, private val db: Db) {
 
         val replaceWords = if (isReplacement) "to replace :$emojiname:" else ""
 
-        val r: FilesUploadResponse = try {
-            ctx.client().filesUpload {
-                it.channels(listOf(config.slack.slackEmojiChannel))
-                it.title("$emojiname preview")
+        // Step 1: Get upload URL from Slack
+        val uploadUrlResp = ctx.client().filesGetUploadURLExternal {
+            it.filename(
                 if (ImageHelp.isGif(previewBytes)) {
-                    it.filename("preview.$emojiname.$rawSha1.gif")
+                    "preview.$emojiname.$rawSha1.gif"
                 } else {
-                    it.filename("preview.$emojiname.$rawSha1.png")
+                    "preview.$emojiname.$rawSha1.png"
                 }
-                it.fileData(previewBytes)
-                it.initialComment(
-                    if (comment.isNullOrBlank()) {
-                        "<@$requester> has proposed a new emoji (`:$emojiname:`) $replaceWords!"
-                    } else {
-                        "<@$requester> has proposed a new emoji (`:$emojiname:`) $replaceWords!\n$comment"
-                    }
-                )
+            )
+            it.length(previewBytes?.size)
+        }
+        if (!uploadUrlResp.isOk || uploadUrlResp.uploadUrl == null) {
+            return Result.failure(Exception("Unable to get upload URL: ${uploadUrlResp.error}"))
+        }
+        val uploadUrl = uploadUrlResp.uploadUrl
+        val fileId = uploadUrlResp.fileId
+
+        // Step 2: Upload file bytes to the provided URL
+        try {
+            val url = java.net.URL(uploadUrl)
+            val conn = url.openConnection() as java.net.HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.doOutput = true
+            conn.setRequestProperty("Content-Type", if (ImageHelp.isGif(previewBytes)) "image/gif" else "image/png")
+            conn.setRequestProperty("Content-Length", previewBytes?.size.toString())
+            conn.outputStream.use {
+                if (previewBytes != null) {
+                    it.write(previewBytes)
+                }
+            }
+            val responseCode = conn.responseCode
+            if (responseCode !in 200..299) {
+                return Result.failure(Exception("Failed to upload file to Slack S3: HTTP $responseCode"))
             }
         } catch (ex: Exception) {
-            logger.warn("Whoa! ${ex.message}")
-            logger.warn(ex.stackTraceToString())
+            logger.warn("Upload to Slack S3 failed: ${ex.message}")
             return Result.failure(ex)
         }
-        if (!r.isOk) {
-            return Result.failure(Exception("Unable to upload image post, ${r.error}"))
-        }
 
-        val previewFile = r.file
+        // Step 3: Complete the upload with Slack
+        val completeFileUploadResp = ctx.client().filesCompleteUploadExternal {
+            it.files(listOf(
+                com.slack.api.methods.request.files.CompleteUploadExternalRequest.FileToComplete.builder()
+                    .id(fileId)
+                    .title("$emojiname preview")
+                    .build()
+            ))
+            it.channelId(config.slack.slackEmojiChannel)
+            it.initialComment(
+                if (comment.isNullOrBlank()) {
+                    "<@$requester> has proposed a new emoji (`:$emojiname:`) $replaceWords!"
+                } else {
+                    "<@$requester> has proposed a new emoji (`:$emojiname:`) $replaceWords!\n$comment"
+                }
+            )
+        }
+        if (!completeFileUploadResp.isOk || completeFileUploadResp.files.isNullOrEmpty()) {
+            return Result.failure(Exception("Unable to complete upload: ${completeFileUploadResp.error}"))
+        }
+        val previewFile = completeFileUploadResp.files[0]
         val proposalTs = previewFile.shares.publicChannels[config.slack.slackEmojiChannel]?.get(0)?.ts
             ?: return Result.failure(Exception("Unable to determine proposal timestamp"))
 
@@ -171,7 +205,7 @@ class EmojiService(private val config: Config, private val db: Db) {
             it.initialComment("Original image:")
         }
         if (!r2.isOk) {
-            return Result.failure(Exception("Unable to upload image post, ${r.error}"))
+            return Result.failure(Exception("Unable to upload image post, ${r2.error}"))
         }
 
         if (warnings.isNotEmpty()) {
