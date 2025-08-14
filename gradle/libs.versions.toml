@@ -9,21 +9,21 @@ hoplite = "2.9.0"
 # https://mvnrepository.com/artifact/org.http4k/http4k-core
 http4k = "6.15.1.0"
 # https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
-jackson = "2.19.1"
+jackson = "2.19.2"
 # https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
-okhttp = "5.0.0"
+okhttp = "5.1.0"
 # https://mvnrepository.com/artifact/org.postgresql/postgresql
 postgresql = "42.7.7"
 # https://mvnrepository.com/artifact/org.flywaydb/flyway-core
-flyway = "11.10.1"
+flyway = "11.11.0"
 # https://mvnrepository.com/artifact/com.sksamuel.scrimage/scrimage-core
-scrimage = "4.3.2"
+scrimage = "4.3.3"
 # https://mvnrepository.com/artifact/com.slack.api/bolt
 bolt = "1.45.3"
 # https://mvnrepository.com/artifact/javax.websocket/javax.websocket-api
 websocket = "1.1"
 # https://mvnrepository.com/artifact/org.glassfish.tyrus.bundles/tyrus-standalone-client
-tyrus = "1.21" # bolt does not support newer than v1.x
+tyrus = "1.22" # bolt does not support newer than v1.x
 # https://mvnrepository.com/artifact/com.target/lite-for-jdbc
 liteForJdbc = "3.0.2"
 
