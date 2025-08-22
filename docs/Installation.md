@@ -37,20 +37,20 @@ votes:
   maxDuration: 5
   winBy: 14
   calendarHolidays:
-    - "2023-01-02" # New Years (US/IN)
-      "2024-01-01" # New Years (US/IN)
+    - "2025-01-01" # New Years (US/IN)
+      "2026-01-01" # New Years (US/IN)
 
-      "2023-01-15" # Sankranti (IN)
-      "2024-01-15" # Sankranti (IN)
+      "2025-01-14" # Sankranti (IN)
+      "2026-01-14" # Sankranti (IN)
 
-      "2023-04-22" # Eid ul fitr (IN)
-      "2024-04-09" # Eid ul fitr (IN)
+      "2025-03-31" # Eid ul fitr (IN) — subject to moon sighting
+      "2026-03-20" # Eid ul fitr (IN) — subject to moon sighting
 
-      "2023-05-29" # Memorial Day (US)
-      "2024-05-27" # Memorial Day (US)
-
-      "2023-06-19" # Juneteenth (US)
-      "2024-06-19" # Juneteenth (US)
+      "2025-05-26" # Memorial Day (US)
+      "2026-05-25" # Memorial Day (US)
+    
+      "2025-06-19" # Juneteenth (US)
+      "2026-06-19" # Juneteenth (US)
       # etc...
 
 text:
@@ -153,8 +153,8 @@ vote:
   downVoteThreshold: 5 # the threshold to notify admin users, optional
   tallySchedule: 30 # in minutes- how often the tally should run, optional
   calendarHolidays: # Array of dates to exclude from business days, optional
-    - 2023-01-02 # Must be in YYYY-MM-DD format
-    - 2024-01-01 # Look in the source at default.conf to see built-in list
+    - 2025-01-02 # Must be in YYYY-MM-DD format
+    - 2026-01-01 # Look in the source at default.conf to see built-in list
 slack:
   slackSigningSecret: 1234567890 # From Slack installation, required
   slackAdminToken:  xoxp-XXXXX # From Slack installation, required
