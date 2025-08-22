@@ -7,7 +7,7 @@ slf4j = "2.0.17"
 # https://mvnrepository.com/artifact/com.sksamuel.hoplite/hoplite-core
 hoplite = "2.9.0"
 # https://mvnrepository.com/artifact/org.http4k/http4k-core
-http4k = "6.15.1.0"
+http4k = "5.21.1.0"
 # https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
 jackson = "2.19.1"
 # https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
@@ -37,6 +37,7 @@ boltServlet = { module = "com.slack.api:bolt-servlet", version.ref = "bolt" }
 boltSocketMode = { module = "com.slack.api:bolt-socket-mode", version.ref = "bolt" }
 boltKotlinModel = { module = "com.slack.api:slack-api-model-kotlin-extension", version.ref = "bolt" }
 boltKotlinClient = { module = "com.slack.api:slack-api-client-kotlin-extension", version.ref = "bolt" }
+slackApiClient = { module = "com.slack.api:slack-api-client", version.ref = "bolt" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 hoplite-core = { module = "com.sksamuel.hoplite:hoplite-core", version.ref = "hoplite" }
