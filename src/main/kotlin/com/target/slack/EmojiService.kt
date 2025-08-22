@@ -4,7 +4,8 @@ import com.slack.api.Slack
 import com.slack.api.bolt.context.Context
 import com.slack.api.methods.AsyncMethodsClient
 import com.slack.api.methods.kotlin_extension.request.chat.blocks
-import com.slack.api.methods.request.files.CompleteUploadExternalRequest
+import com.slack.api.methods.request.files.FilesCompleteUploadExternalRequest
+import com.slack.api.methods.response.files.FilesCompleteUploadExternalResponse
 import com.slack.api.model.File
 import com.target.liteforjdbc.Db
 import org.slf4j.Logger
@@ -118,23 +119,28 @@ class EmojiService(private val config: Config, private val db: Db) {
         }
 
         // Step 3: Complete the upload with Slack
-        val completeFileUploadResp = ctx.client().filesCompleteUploadExternal {
-            it.files(listOf(
-                com.slack.api.methods.request.files.CompleteUploadExternalRequest.FileToComplete.builder()
-                    .id(fileId)
-                    .title("$emojiname preview")
-                    .build()
-            ))
-            it.channelId(config.slack.slackEmojiChannel)
-            it.initialComment(
-                if (comment.isNullOrBlank()) {
-                    "<@$requester> has proposed a new emoji (`:$emojiname:`) $replaceWords!"
-                } else {
-                    "<@$requester> has proposed a new emoji (`:$emojiname:`) $replaceWords!\n$comment"
-                }
-            )
-        }
+        val completeFileUploadResp: FilesCompleteUploadExternalResponse =
+            ctx.client().filesCompleteUploadExternal { req ->
+                req.files(
+                    listOf(
+                        FilesCompleteUploadExternalRequest.FileDetails.builder()
+                            .id(fileId) // <- from Step 1
+                            .title("$emojiname preview")
+                            .build()
+                    )
+                )
+                req.channelId(config.slack.slackEmojiChannel) // optional; omit to keep file private
+                req.initialComment(
+                    if (comment.isNullOrBlank()) {
+                        "<@$requester> has proposed a new emoji (`:$emojiname:`) $replaceWords!"
+                    } else {
+                        "<@$requester> has proposed a new emoji (`:$emojiname:`) $replaceWords!\n$comment"
+                    }
+                )
+                // req.threadTs(parentTs) // uncomment to post as a thread reply
+            }
         if (!completeFileUploadResp.isOk || completeFileUploadResp.files.isNullOrEmpty()) {
+            logger.error("Unable to complete upload: ${completeFileUploadResp.error}, response: $completeFileUploadResp")
             return Result.failure(Exception("Unable to complete upload: ${completeFileUploadResp.error}"))
         }
         val previewFile = completeFileUploadResp.files[0]
@@ -196,16 +202,51 @@ class EmojiService(private val config: Config, private val db: Db) {
             it.text(buildProposalVotingRules("emoji will be added"))
         }
 
-        val r2 = ctx.client().filesUpload {
-            it.channels(listOf(config.slack.slackEmojiChannel))
-            it.threadTs(proposalTs)
-            it.title(emojiname)
+        // Modern Slack upload flow for original image
+        val origUploadUrlResp = ctx.client().filesGetUploadURLExternal {
             it.filename(rawFile.name)
-            it.fileData(rawFileBytes)
-            it.initialComment("Original image:")
+            it.length(rawFileBytes?.size)
         }
-        if (!r2.isOk) {
-            return Result.failure(Exception("Unable to upload image post, ${r2.error}"))
+        if (!origUploadUrlResp.isOk || origUploadUrlResp.uploadUrl == null) {
+            return Result.failure(Exception("Unable to get upload URL for original image: ${origUploadUrlResp.error}"))
+        }
+        val origUploadUrl = origUploadUrlResp.uploadUrl
+        val origFileId = origUploadUrlResp.fileId
+        try {
+            val url = java.net.URL(origUploadUrl)
+            val conn = url.openConnection() as java.net.HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.doOutput = true
+            conn.setRequestProperty("Content-Type", rawFile.mimetype)
+            conn.setRequestProperty("Content-Length", rawFileBytes.size.toString())
+            conn.outputStream.use {
+                it.write(rawFileBytes)
+            }
+            val responseCode = conn.responseCode
+            if (responseCode !in 200..299) {
+                return Result.failure(Exception("Failed to upload original file to Slack S3: HTTP $responseCode"))
+            }
+        } catch (ex: Exception) {
+            logger.warn("Upload of original image to Slack S3 failed: ${ex.message}")
+            return Result.failure(ex)
+        }
+        val origCompleteFileUploadResp: FilesCompleteUploadExternalResponse =
+            ctx.client().filesCompleteUploadExternal { req ->
+                req.files(
+                    listOf(
+                        FilesCompleteUploadExternalRequest.FileDetails.builder()
+                            .id(origFileId) // from getUploadURLExternal
+                            .title(emojiname)
+                            .build()
+                    )
+                )
+                req.channelId(config.slack.slackEmojiChannel)
+                req.initialComment("Original image:")
+                req.threadTs(proposalTs) // reply in the proposal thread
+            }
+        if (!origCompleteFileUploadResp.isOk || origCompleteFileUploadResp.files.isNullOrEmpty()) {
+            logger.error("Unable to complete upload: ${origCompleteFileUploadResp.error}, response: $origCompleteFileUploadResp")
+            return Result.failure(Exception("Unable to complete upload for original image: ${origCompleteFileUploadResp.error}"))
         }
 
         if (warnings.isNotEmpty()) {

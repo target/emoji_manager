@@ -8,6 +8,8 @@ import com.slack.api.bolt.request.builtin.ViewSubmissionRequest
 import com.slack.api.bolt.util.JsonOps
 import com.slack.api.bolt.util.Responder
 import com.slack.api.methods.kotlin_extension.request.chat.blocks
+import com.slack.api.methods.request.files.FilesCompleteUploadExternalRequest
+import com.slack.api.methods.response.files.FilesCompleteUploadExternalResponse
 import com.slack.api.model.File
 import com.slack.api.model.event.MessageFileShareEvent
 import com.slack.api.model.kotlin_extension.block.withBlocks
@@ -208,20 +210,63 @@ class MessageHandler(private val config: Config, private val emojiService: Emoji
             warnings.add("Image preview could not be generated: ${result.exceptionOrNull()?.message}")
         } else {
             val previewBytes = result.getOrNull()
-            val r = ctx.client().filesUpload {
-                it.channels(mutableListOf(ctx.channelId))
-                it.threadTs(eventTs)
-                it.title("$name preview")
-                if (ImageHelp.isGif(previewBytes)) {
-                    it.filename("preview.$name.$rawSha1.gif")
-                } else {
-                    it.filename("preview.$name.$rawSha1.png")
-                }
-                it.fileData(previewBytes)
+            // Modern Slack upload flow
+            val uploadUrlResp = ctx.client().filesGetUploadURLExternal {
+                it.filename(
+                    if (ImageHelp.isGif(previewBytes)) {
+                        "preview.$name.$rawSha1.gif"
+                    } else {
+                        "preview.$name.$rawSha1.png"
+                    }
+                )
+                it.length(previewBytes?.size)
             }
-            if (!r.isOk) {
-                logger.warn("Upload of preview.$name.$rawSha1 failed:  ${r.error}")
-                warnings.add("Uploading the preview to Slack failed: ${r.error}")
+            if (!uploadUrlResp.isOk || uploadUrlResp.uploadUrl == null) {
+                logger.warn("Unable to get upload URL: ${uploadUrlResp.error}")
+                warnings.add("Unable to get upload URL: ${uploadUrlResp.error}")
+            } else {
+                val uploadUrl = uploadUrlResp.uploadUrl
+                val fileId = uploadUrlResp.fileId
+                try {
+                    val url = java.net.URL(uploadUrl)
+                    val conn = url.openConnection() as java.net.HttpURLConnection
+                    conn.requestMethod = "POST"
+                    conn.doOutput = true
+                    conn.setRequestProperty("Content-Type", if (ImageHelp.isGif(previewBytes)) "image/gif" else "image/png")
+                    conn.setRequestProperty("Content-Length", previewBytes?.size.toString())
+                    conn.outputStream.use {
+                        if (previewBytes != null) {
+                            it.write(previewBytes)
+                        }
+                    }
+                    val responseCode = conn.responseCode
+                    if (responseCode !in 200..299) {
+                        logger.warn("Failed to upload file to Slack S3: HTTP $responseCode")
+                        warnings.add("Failed to upload file to Slack S3: HTTP $responseCode")
+                    } else {
+                        val completeFileUploadResp: FilesCompleteUploadExternalResponse =
+                            ctx.client().filesCompleteUploadExternal { req ->
+                                req.files(
+                                    listOf(
+                                        FilesCompleteUploadExternalRequest.FileDetails.builder()
+                                            .id(fileId) // <- from Step 1
+                                            .title("$name preview")
+                                            .build()
+                                    )
+                                )
+                                req.channelId(ctx.channelId)
+                                req.initialComment(":$name: preview")
+                                req.threadTs(eventTs)
+                            }
+                        if (!completeFileUploadResp.isOk || completeFileUploadResp.files.isNullOrEmpty()) {
+                            logger.warn("Unable to complete upload: ${completeFileUploadResp.error}")
+                            warnings.add("Unable to complete upload: ${completeFileUploadResp.error}")
+                        }
+                    }
+                } catch (ex: Exception) {
+                    logger.warn("Upload to Slack S3 failed: ${ex.message}")
+                    warnings.add("Upload to Slack S3 failed: ${ex.message}")
+                }
             }
         }
 
