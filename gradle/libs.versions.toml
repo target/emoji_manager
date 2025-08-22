@@ -7,7 +7,7 @@ slf4j = "2.0.17"
 # https://mvnrepository.com/artifact/com.sksamuel.hoplite/hoplite-core
 hoplite = "2.9.0"
 # https://mvnrepository.com/artifact/org.http4k/http4k-core
-http4k = "6.15.1.0"
+http4k = "5.21.1.0"
 # https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
 jackson = "2.19.1"
 # https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
