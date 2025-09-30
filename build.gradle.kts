@@ -28,7 +28,7 @@ repositories {
 application {
     mainClass.set("com.target.slack.SlackApplicationKt")
     group = "com.target.slack"
-    java.sourceCompatibility = JavaVersion.VERSION_17
+    java.sourceCompatibility = JavaVersion.VERSION_21
 }
 
 configurations.all {
