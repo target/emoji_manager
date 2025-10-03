@@ -79,7 +79,9 @@ class MessageHandler(private val config: Config, private val emojiService: Emoji
         val metadata = mapOf(
             Pair("fileId", req.payload.actions[0].value),
             Pair("responseUrl", req.payload.responseUrl),
-            Pair("triggerId", req.payload.triggerId)
+            Pair("triggerId", req.payload.triggerId),
+            Pair("channelId", req.payload.channel.id),
+            Pair("messageTs", req.payload.message.ts)
         )
 
         val ogMsg = ctx.client().conversationsHistory {
@@ -166,23 +168,29 @@ class MessageHandler(private val config: Config, private val emojiService: Emoji
         }
 
         try {
-            // update the original button
+            // Update the original message using the stored channel and timestamp from the button metadata
+            val channelId = metadata["channelId"]
+            val messageTs = metadata["messageTs"]
 
-            val actionCtx = ActionContext()
-            actionCtx.triggerId = metadata["triggerId"]
-            actionCtx.responder = Responder(ctx.slack, metadata["responseUrl"])
-
-            val u = actionCtx.respond {
-                it.replaceOriginal(true)
-                it.blocks(
-                    withBlocks {
+            if (channelId != null && messageTs != null) {
+                val proposal = r.getOrNull()
+                val updateResult = ctx.client().chatUpdate { req ->
+                    req.channel(channelId)
+                    req.ts(messageTs)
+                    req.blocks {
                         section {
-                            markdownText("<${r.getOrNull()!!.permalink}|Proposal posted here.>\nIf you wish to withdraw this proposal, react to that post with :${Proposals.WITHDRAW}: (`:${Proposals.WITHDRAW}:`).")
+                            if (proposal?.permalink != null) {
+                                markdownText("<${proposal.permalink}|Proposal posted here.>\nIf you wish to withdraw this proposal, react to that post with :${Proposals.WITHDRAW}: (`:${Proposals.WITHDRAW}:`).")
+                            } else {
+                                markdownText(":warning: Proposal failed to post. Please try again or contact an admin.")
+                            }
                         }
                     }
-                )
+                }
+                logger.info("Chat update result: ${updateResult.isOk}, error: ${updateResult.error}")
+            } else {
+                logger.warn("Missing channelId or messageTs in metadata, cannot update original message")
             }
-            logger.info("Chat update: ${u.code}")
         } catch (ex: Exception) {
             logger.error("Error on update: ${ex.message}")
             logger.error(ex.stackTraceToString())
@@ -204,7 +212,6 @@ class MessageHandler(private val config: Config, private val emojiService: Emoji
         val result = ImageHelp.runCatching {
             generatePreview(rawFile)
         }
-
         if (result.isFailure) {
             logger.warn("Upload of preview.$name.$rawSha1.$extension failed:  ${result.exceptionOrNull()}")
             warnings.add("Image preview could not be generated: ${result.exceptionOrNull()?.message}")
@@ -255,12 +262,30 @@ class MessageHandler(private val config: Config, private val emojiService: Emoji
                                     )
                                 )
                                 req.channelId(ctx.channelId)
-                                req.initialComment(":$name: preview")
                                 req.threadTs(eventTs)
                             }
                         if (!completeFileUploadResp.isOk || completeFileUploadResp.files.isNullOrEmpty()) {
                             logger.warn("Unable to complete upload: ${completeFileUploadResp.error}")
                             warnings.add("Unable to complete upload: ${completeFileUploadResp.error}")
+                        } else {
+                            // Wait for file to appear in thread
+                            val maxTries = 10
+                            val delayMs = 1000L
+                            for (i in 1..maxTries) {
+                                val replies = ctx.client().conversationsReplies {
+                                    it.channel(ctx.channelId)
+                                    it.ts(eventTs)
+                                }
+                                if (replies.isOk && replies.messages != null) {
+                                    val found = replies.messages.any { m ->
+                                        m.files?.any { f -> f.id == fileId } == true
+                                    }
+                                    if (found) {
+                                        break
+                                    }
+                                }
+                                Thread.sleep(delayMs)
+                            }
                         }
                     }
                 } catch (ex: Exception) {

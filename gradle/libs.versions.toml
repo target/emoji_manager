@@ -1,6 +1,6 @@
 [versions]
 # https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib
-kotlin = "1.8.20"
+kotlin = "2.2.0"
 
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
 slf4j = "2.0.17"
@@ -19,7 +19,7 @@ flyway = "11.10.1"
 # https://mvnrepository.com/artifact/com.sksamuel.scrimage/scrimage-core
 scrimage = "4.3.2"
 # https://mvnrepository.com/artifact/com.slack.api/bolt
-bolt = "1.45.3"
+bolt = "1.45.4"
 # https://mvnrepository.com/artifact/javax.websocket/javax.websocket-api
 websocket = "1.1"
 # https://mvnrepository.com/artifact/org.glassfish.tyrus.bundles/tyrus-standalone-client

@@ -143,14 +143,43 @@ class EmojiService(private val config: Config, private val db: Db) {
             logger.error("Unable to complete upload: ${completeFileUploadResp.error}, response: $completeFileUploadResp")
             return Result.failure(Exception("Unable to complete upload: ${completeFileUploadResp.error}"))
         }
-        val previewFile = completeFileUploadResp.files[0]
-        val proposalTs = previewFile.shares.publicChannels[config.slack.slackEmojiChannel]?.get(0)?.ts
-            ?: return Result.failure(Exception("Unable to determine proposal timestamp"))
 
-        val proposalLink = ctx.client().chatGetPermalink {
+        val previewFile = completeFileUploadResp.files.first()
+        logger.debug("previewFile: $previewFile")
+        Thread.sleep(3000)
+        // Get the message timestamp by finding the message that contains our preview file
+        val conversationHistory = ctx.client().conversationsHistory {
+            it.channel(config.slack.slackEmojiChannel)
+            it.limit(10) // Get recent messages to search through
+        }
+
+        val proposalTs = if (conversationHistory.isOk && conversationHistory.messages.isNotEmpty()) {
+            // Find the message that contains our preview file ID
+            val messageWithFile = conversationHistory.messages.find { message ->
+                message.files?.any { file -> file.id == previewFile.id } == true
+            }
+            messageWithFile?.ts
+        } else {
+            null
+        }
+
+        if (proposalTs == null) {
+            logger.error("Could not find message containing preview file ${previewFile.id}. ConversationHistory ok: ${conversationHistory.isOk}, error: ${conversationHistory.error}")
+            return Result.failure(Exception("Could not find the proposal message timestamp from Slack response."))
+        }
+
+        logger.debug("proposalTs: $proposalTs")
+
+        // Get permalink for that message
+        val permalinkResp = ctx.client().chatGetPermalink {
             it.channel(config.slack.slackEmojiChannel)
             it.messageTs(proposalTs)
-        }.permalink
+        }
+        if (!permalinkResp.isOk || permalinkResp.permalink == null) {
+            return Result.failure(Exception("Unable to get permalink: ${permalinkResp.error}"))
+        }
+        val proposalLink = permalinkResp.permalink
+        logger.debug("Got proposalLink: $proposalLink")
 
         val prop = db.withTransaction {
             val propFile = emojiFiles.upsert(
@@ -163,7 +192,7 @@ class EmojiService(private val config: Config, private val db: Db) {
             val prop: Proposal = proposals.upsert(
                 Proposal(
                     emoji = emojiname,
-                    thread = proposalTs,
+                    thread = proposalTs.toString(),
                     permalink = proposalLink,
                     fileId = propFile.sha1,
                     user = requester,

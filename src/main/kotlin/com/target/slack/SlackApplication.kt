@@ -157,7 +157,7 @@ fun main() {
     http4KEmojiManagerApp.asServer(SunHttp(config.server.port)).start()
 
     // This is for local testing only. Eventually get rid of socket mode here
-    if (config.slack.slackAppToken.value.isNotEmpty()) {
+    if (config.slack.slackAppToken.value.isEmpty()) {
         val socket = SocketModeApp(boltApp)
         socket.start()
     }
