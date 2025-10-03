@@ -1,6 +1,6 @@
 [versions]
 # https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib
-kotlin = "1.8.20"
+kotlin = "2.2.0"
 
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
 slf4j = "2.0.17"
@@ -19,7 +19,7 @@ flyway = "11.10.1"
 # https://mvnrepository.com/artifact/com.sksamuel.scrimage/scrimage-core
 scrimage = "4.3.2"
 # https://mvnrepository.com/artifact/com.slack.api/bolt
-bolt = "1.45.3"
+bolt = "1.45.4"
 # https://mvnrepository.com/artifact/javax.websocket/javax.websocket-api
 websocket = "1.1"
 # https://mvnrepository.com/artifact/org.glassfish.tyrus.bundles/tyrus-standalone-client
@@ -37,6 +37,7 @@ boltServlet = { module = "com.slack.api:bolt-servlet", version.ref = "bolt" }
 boltSocketMode = { module = "com.slack.api:bolt-socket-mode", version.ref = "bolt" }
 boltKotlinModel = { module = "com.slack.api:slack-api-model-kotlin-extension", version.ref = "bolt" }
 boltKotlinClient = { module = "com.slack.api:slack-api-client-kotlin-extension", version.ref = "bolt" }
+slackApiClient = { module = "com.slack.api:slack-api-client", version.ref = "bolt" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 hoplite-core = { module = "com.sksamuel.hoplite:hoplite-core", version.ref = "hoplite" }
