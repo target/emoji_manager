@@ -6,13 +6,11 @@ import com.slack.api.bolt.context.builtin.ViewSubmissionContext
 import com.slack.api.bolt.request.builtin.BlockActionRequest
 import com.slack.api.bolt.request.builtin.ViewSubmissionRequest
 import com.slack.api.bolt.util.JsonOps
-import com.slack.api.bolt.util.Responder
 import com.slack.api.methods.kotlin_extension.request.chat.blocks
 import com.slack.api.methods.request.files.FilesCompleteUploadExternalRequest
 import com.slack.api.methods.response.files.FilesCompleteUploadExternalResponse
 import com.slack.api.model.File
 import com.slack.api.model.event.MessageFileShareEvent
-import com.slack.api.model.kotlin_extension.block.withBlocks
 import com.slack.api.model.kotlin_extension.view.blocks
 import com.slack.api.model.view.Views.view
 import com.slack.api.model.view.Views.viewClose
