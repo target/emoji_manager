@@ -3,14 +3,14 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.21")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.0")
         classpath(libs.ktlint)
     }
 }
 
 plugins {
     application
-    kotlin("jvm") version "1.9.21"
+    kotlin("jvm") version "2.2.0"
     id("jacoco")
     alias(libs.plugins.ktlint)
 }
@@ -19,7 +19,7 @@ ktlint {
     version.set("0.48.2")
 }
 group = "com.target.slack"
-version = "2.2.0"
+version = "2.2.2"
 
 repositories {
     mavenCentral()
@@ -28,7 +28,7 @@ repositories {
 application {
     mainClass.set("com.target.slack.SlackApplicationKt")
     group = "com.target.slack"
-    java.sourceCompatibility = JavaVersion.VERSION_17
+    java.sourceCompatibility = JavaVersion.VERSION_21
 }
 
 configurations.all {
@@ -49,7 +49,7 @@ dependencies {
     implementation(libs.tyrusClient)
     implementation(libs.bundles.slf4j)
 
-    testImplementation("com.h2database:h2:2.2.224")
+    testImplementation("com.h2database:h2:2.3.232")
     testImplementation(kotlin("test-junit"))
 }
 

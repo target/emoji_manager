@@ -1,31 +1,31 @@
 [versions]
 # https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib
-kotlin = "1.8.20"
+kotlin = "2.2.0"
 
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
-slf4j = "2.0.9"
+slf4j = "2.0.17"
 # https://mvnrepository.com/artifact/com.sksamuel.hoplite/hoplite-core
-hoplite = "2.7.5"
+hoplite = "2.9.0"
 # https://mvnrepository.com/artifact/org.http4k/http4k-core
-http4k = "5.11.0.0"
+http4k = "5.21.1.0"
 # https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
-jackson = "2.16.0"
+jackson = "2.19.1"
 # https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
-okhttp = "4.12.0"
+okhttp = "5.0.0"
 # https://mvnrepository.com/artifact/org.postgresql/postgresql
-postgresql = "42.7.1"
+postgresql = "42.7.7"
 # https://mvnrepository.com/artifact/org.flywaydb/flyway-core
-flyway = "10.3.0"
+flyway = "11.10.1"
 # https://mvnrepository.com/artifact/com.sksamuel.scrimage/scrimage-core
-scrimage = "4.1.1"
+scrimage = "4.3.2"
 # https://mvnrepository.com/artifact/com.slack.api/bolt
-bolt = "1.36.1"
+bolt = "1.45.4"
 # https://mvnrepository.com/artifact/javax.websocket/javax.websocket-api
 websocket = "1.1"
 # https://mvnrepository.com/artifact/org.glassfish.tyrus.bundles/tyrus-standalone-client
 tyrus = "1.21" # bolt does not support newer than v1.x
 # https://mvnrepository.com/artifact/com.target/lite-for-jdbc
-liteForJdbc = "2.4.0"
+liteForJdbc = "3.0.2"
 
 ktlint = "11.2.0"
 
@@ -37,6 +37,7 @@ boltServlet = { module = "com.slack.api:bolt-servlet", version.ref = "bolt" }
 boltSocketMode = { module = "com.slack.api:bolt-socket-mode", version.ref = "bolt" }
 boltKotlinModel = { module = "com.slack.api:slack-api-model-kotlin-extension", version.ref = "bolt" }
 boltKotlinClient = { module = "com.slack.api:slack-api-client-kotlin-extension", version.ref = "bolt" }
+slackApiClient = { module = "com.slack.api:slack-api-client", version.ref = "bolt" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 hoplite-core = { module = "com.sksamuel.hoplite:hoplite-core", version.ref = "hoplite" }

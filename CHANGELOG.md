@@ -1,3 +1,10 @@
+v2.2.2
+ - Update dependencies
+ - Update Actions workflows
+
+v2.2.1
+ - Update dependencies
+
 v2.2.0
  - Add more admin notification
  - Change image scaling algorithm to lanczos3 to improve preview image quality
