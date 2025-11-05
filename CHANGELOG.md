@@ -1,3 +1,8 @@
+v2.3.0
+ - Upgrade project to java 21 ([#163](https://github.com/target/emoji_manager/pull/163))
+ - Updated to new Slack API file upload methods ([#167](https://github.com/target/emoji_manager/pull/167))
+ - Update dependencies
+
 v2.2.2
  - Update dependencies
  - Update Actions workflows
