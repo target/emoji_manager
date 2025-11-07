@@ -240,7 +240,7 @@ fun interpolateTextConfig(cfg: Config): TextConfig {
  * Load config for the given class destination
  */
 @Suppress("DEPRECATION")
-inline fun <reified T: Any> loadConfig(): T {
+inline fun <reified T : Any> loadConfig(): T {
     val configBuilder = ConfigLoaderBuilder
         .default()
         .allowUnresolvedSubstitutions()
