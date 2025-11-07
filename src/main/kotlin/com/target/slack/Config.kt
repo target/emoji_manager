@@ -114,9 +114,138 @@ fun buildOrderedSources(): List<PropertySource> {
 }
 
 /**
+ * Perform simple placeholder interpolation of ${...} tokens within the TextConfig strings
+ * using values from the loaded config. This runs several iterations to resolve nested substitutions.
+ */
+fun interpolateTextConfig(cfg: Config): TextConfig {
+    // Build map of keys to string values we support for interpolation
+    val replacements = mutableMapOf<String, String>()
+    // slack
+    replacements["slack.slackEmojiChannel"] = cfg.slack.slackEmojiChannel
+    // votes
+    replacements["votes.winBy"] = cfg.votes.winBy.toString()
+    replacements["votes.maxDuration"] = cfg.votes.maxDuration.toString()
+    replacements["votes.commentPeriod"] = cfg.votes.commentPeriod.toString()
+    // text simple tokens
+    replacements["text.withdraw"] = cfg.text.withdraw
+    replacements["text.report"] = cfg.text.report
+    replacements["text.force"] = cfg.text.force
+    replacements["text.block"] = cfg.text.block
+    // help commands and other text.help keys
+    replacements["text.help.cmdVersion"] = cfg.text.help.cmdStatus // fallback if not defined; we'll overwrite below if available
+    // Copy from help explicitly
+    replacements["text.help.cmdVersion"] = cfg.text.help.cmdStatus // we'll overwrite below to be safe
+    replacements["text.help.cmdStatus"] = cfg.text.help.cmdStatus
+    replacements["text.help.cmdAlias"] = cfg.text.help.cmdAlias
+    replacements["text.help.cmdRemove"] = cfg.text.help.cmdRemove
+    replacements["text.help.cmdReset"] = cfg.text.help.cmdReset
+    replacements["text.help.cmdTally"] = cfg.text.help.cmdTally
+    replacements["text.help.cmdFakevote"] = cfg.text.help.cmdFakevote
+
+    // Start with current raw strings
+    var intro = cfg.text.intro
+    var homeAdvanced = cfg.text.homeAdvanced
+    var general = cfg.text.help.general
+    var admin = cfg.text.help.admin
+    var cmdStatus = cfg.text.help.cmdStatus
+    var cmdAlias = cfg.text.help.cmdAlias
+    var cmdRemove = cfg.text.help.cmdRemove
+    var cmdReset = cfg.text.help.cmdReset
+    var cmdTally = cfg.text.help.cmdTally
+    var cmdFakevote = cfg.text.help.cmdFakevote
+
+    // Helper to replace all ${key} occurrences using replacements map
+    fun replaceAll(s: String): String {
+        var out = s
+        // find ${...} occurrences
+        val regex = "\\$\\{([^}]+)}".toRegex()
+        out = regex.replace(out) { match ->
+            val key = match.groupValues[1]
+            replacements[key] ?: match.value // if unknown, keep original to allow other passes to resolve
+        }
+        return out
+    }
+
+    // Iteratively replace to allow nested references (limit to 5 passes)
+    var pass = 0
+    while (pass < 5) {
+        // update replacements with any help fields that may themselves contain placeholders
+        replacements["text.help.cmdStatus"] = cmdStatus
+        replacements["text.help.cmdAlias"] = cmdAlias
+        replacements["text.help.cmdRemove"] = cmdRemove
+        replacements["text.help.cmdReset"] = cmdReset
+        replacements["text.help.cmdTally"] = cmdTally
+        replacements["text.help.cmdFakevote"] = cmdFakevote
+        replacements["text.help.cmdVersion"] = replacements["text.help.cmdVersion"] ?: cmdStatus
+
+        val newIntro = replaceAll(intro)
+        val newHome = replaceAll(homeAdvanced)
+        val newGeneral = replaceAll(general)
+        val newAdmin = replaceAll(admin)
+        val newCmdStatus = replaceAll(cmdStatus)
+        val newCmdAlias = replaceAll(cmdAlias)
+        val newCmdRemove = replaceAll(cmdRemove)
+        val newCmdReset = replaceAll(cmdReset)
+        val newCmdTally = replaceAll(cmdTally)
+        val newCmdFakevote = replaceAll(cmdFakevote)
+
+        val changed = (newIntro != intro) || (newHome != homeAdvanced) || (newGeneral != general) ||
+            (newAdmin != admin) || (newCmdStatus != cmdStatus) || (newCmdAlias != cmdAlias) ||
+            (newCmdRemove != cmdRemove) || (newCmdReset != cmdReset) || (newCmdTally != cmdTally) ||
+            (newCmdFakevote != cmdFakevote)
+
+        intro = newIntro
+        homeAdvanced = newHome
+        general = newGeneral
+        admin = newAdmin
+        cmdStatus = newCmdStatus
+        cmdAlias = newCmdAlias
+        cmdRemove = newCmdRemove
+        cmdReset = newCmdReset
+        cmdTally = newCmdTally
+        cmdFakevote = newCmdFakevote
+
+        // update replacements with the possibly expanded help snippets so next pass can substitute them
+        replacements["text.help.cmdStatus"] = cmdStatus
+        replacements["text.help.cmdAlias"] = cmdAlias
+        replacements["text.help.cmdRemove"] = cmdRemove
+        replacements["text.help.cmdReset"] = cmdReset
+        replacements["text.help.cmdTally"] = cmdTally
+        replacements["text.help.cmdFakevote"] = cmdFakevote
+
+        if (!changed) break
+        pass++
+    }
+
+    val newHelp = HelpText(
+        general = general,
+        admin = admin,
+        cmdStatus = cmdStatus,
+        cmdAlias = cmdAlias,
+        cmdRemove = cmdRemove,
+        cmdReset = cmdReset,
+        cmdTally = cmdTally,
+        cmdFakevote = cmdFakevote,
+    )
+
+    return TextConfig(
+        intro = intro,
+        homeAdvanced = homeAdvanced,
+        help = newHelp,
+        upvote = cfg.text.upvote,
+        downvote = cfg.text.downvote,
+        force = cfg.text.force,
+        block = cfg.text.block,
+        withdraw = cfg.text.withdraw,
+        report = cfg.text.report,
+    )
+}
+
+/**
  * Load config for the given class destination
  */
-inline fun <reified T> loadConfig(): T {
+@Suppress("DEPRECATION")
+inline fun <reified T: Any> loadConfig(): T {
     val configBuilder = ConfigLoaderBuilder
         .default()
         .allowUnresolvedSubstitutions()
@@ -128,9 +257,20 @@ inline fun <reified T> loadConfig(): T {
         configBuilder.addSource(propertySource)
     }
     try {
-        return configBuilder
+        val loaded = configBuilder
             .build()
-            .loadConfigOrThrow()
+            .loadConfigOrThrow<T>()
+
+        // Only interpolate TextConfig values when we've loaded a Config (safest to check)
+        if (loaded is Config) {
+            val cfg = loaded
+            val interpolatedText = interpolateTextConfig(cfg)
+            // return a copy of the loaded config with interpolated text
+            @Suppress("UNCHECKED_CAST")
+            return (cfg.copy(text = interpolatedText) as T)
+        }
+
+        return loaded
     } catch (t: Throwable) {
         // configuration errors were getting swallowed in CI, so adding some explicit logging
         t.printStackTrace()
