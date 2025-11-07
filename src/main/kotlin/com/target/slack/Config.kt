@@ -131,16 +131,20 @@ fun interpolateTextConfig(cfg: Config): TextConfig {
     replacements["text.report"] = cfg.text.report
     replacements["text.force"] = cfg.text.force
     replacements["text.block"] = cfg.text.block
-    // help commands and other text.help keys
-    replacements["text.help.cmdVersion"] = cfg.text.help.cmdStatus // fallback if not defined; we'll overwrite below if available
-    // Copy from help explicitly
-    replacements["text.help.cmdVersion"] = cfg.text.help.cmdStatus // we'll overwrite below to be safe
-    replacements["text.help.cmdStatus"] = cfg.text.help.cmdStatus
-    replacements["text.help.cmdAlias"] = cfg.text.help.cmdAlias
-    replacements["text.help.cmdRemove"] = cfg.text.help.cmdRemove
-    replacements["text.help.cmdReset"] = cfg.text.help.cmdReset
-    replacements["text.help.cmdTally"] = cfg.text.help.cmdTally
-    replacements["text.help.cmdFakevote"] = cfg.text.help.cmdFakevote
+    // help commands and other text.help keys (populate from HelpText in a compact way)
+    replacements["text.help.cmdVersion"] = cfg.text.help.cmdStatus // fallback if not defined; we'll update as we expand
+
+    val helpMap = mapOf(
+        "text.help.cmdStatus" to cfg.text.help.cmdStatus,
+        "text.help.cmdAlias" to cfg.text.help.cmdAlias,
+        "text.help.cmdRemove" to cfg.text.help.cmdRemove,
+        "text.help.cmdReset" to cfg.text.help.cmdReset,
+        "text.help.cmdTally" to cfg.text.help.cmdTally,
+        "text.help.cmdFakevote" to cfg.text.help.cmdFakevote,
+        "text.help.general" to cfg.text.help.general,
+        "text.help.admin" to cfg.text.help.admin,
+    )
+    replacements.putAll(helpMap)
 
     // Start with current raw strings
     var intro = cfg.text.intro
@@ -154,28 +158,28 @@ fun interpolateTextConfig(cfg: Config): TextConfig {
     var cmdTally = cfg.text.help.cmdTally
     var cmdFakevote = cfg.text.help.cmdFakevote
 
-    // Helper to replace all ${key} occurrences using replacements map
+    // Helper to replace all ${key} occurrences using replacements map; precompile regex once
+    val placeholderRegex = "\\$\\{([^}]+)}".toRegex()
     fun replaceAll(s: String): String {
-        var out = s
-        // find ${...} occurrences
-        val regex = "\\$\\{([^}]+)}".toRegex()
-        out = regex.replace(out) { match ->
+        return placeholderRegex.replace(s) { match ->
             val key = match.groupValues[1]
             replacements[key] ?: match.value // if unknown, keep original to allow other passes to resolve
         }
-        return out
     }
 
     // Iteratively replace to allow nested references (limit to 5 passes)
-    var pass = 0
-    while (pass < 5) {
+    for (i in 0..4) {
         // update replacements with any help fields that may themselves contain placeholders
-        replacements["text.help.cmdStatus"] = cmdStatus
-        replacements["text.help.cmdAlias"] = cmdAlias
-        replacements["text.help.cmdRemove"] = cmdRemove
-        replacements["text.help.cmdReset"] = cmdReset
-        replacements["text.help.cmdTally"] = cmdTally
-        replacements["text.help.cmdFakevote"] = cmdFakevote
+        val dynamicHelp = mapOf(
+            "text.help.cmdStatus" to cmdStatus,
+            "text.help.cmdAlias" to cmdAlias,
+            "text.help.cmdRemove" to cmdRemove,
+            "text.help.cmdReset" to cmdReset,
+            "text.help.cmdTally" to cmdTally,
+            "text.help.cmdFakevote" to cmdFakevote,
+        )
+        replacements.putAll(dynamicHelp)
+        // ensure cmdVersion has a sensible fallback
         replacements["text.help.cmdVersion"] = replacements["text.help.cmdVersion"] ?: cmdStatus
 
         val newIntro = replaceAll(intro)
@@ -205,16 +209,7 @@ fun interpolateTextConfig(cfg: Config): TextConfig {
         cmdTally = newCmdTally
         cmdFakevote = newCmdFakevote
 
-        // update replacements with the possibly expanded help snippets so next pass can substitute them
-        replacements["text.help.cmdStatus"] = cmdStatus
-        replacements["text.help.cmdAlias"] = cmdAlias
-        replacements["text.help.cmdRemove"] = cmdRemove
-        replacements["text.help.cmdReset"] = cmdReset
-        replacements["text.help.cmdTally"] = cmdTally
-        replacements["text.help.cmdFakevote"] = cmdFakevote
-
         if (!changed) break
-        pass++
     }
 
     val newHelp = HelpText(
