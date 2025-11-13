@@ -5,25 +5,25 @@ kotlin = "2.2.0"
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
 slf4j = "2.0.17"
 # https://mvnrepository.com/artifact/com.sksamuel.hoplite/hoplite-core
-hoplite = "2.7.5" # Updating the version of hoplite seems to break the /emoji help command
+hoplite = "2.9.0" # Updating the version of hoplite seems to break the /emoji help command
 # https://mvnrepository.com/artifact/org.http4k/http4k-core
-http4k = "5.21.1.0"
+http4k = "6.20.2.1"
 # https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
-jackson = "2.19.1"
+jackson = "2.20.1"
 # https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
-okhttp = "5.0.0"
+okhttp = "5.3.0"
 # https://mvnrepository.com/artifact/org.postgresql/postgresql
-postgresql = "42.7.7"
+postgresql = "42.7.8"
 # https://mvnrepository.com/artifact/org.flywaydb/flyway-core
-flyway = "11.10.1"
+flyway = "11.17.0"
 # https://mvnrepository.com/artifact/com.sksamuel.scrimage/scrimage-core
-scrimage = "4.3.2"
+scrimage = "4.3.5"
 # https://mvnrepository.com/artifact/com.slack.api/bolt
-bolt = "1.45.4"
+bolt = "1.46.0"
 # https://mvnrepository.com/artifact/javax.websocket/javax.websocket-api
 websocket = "1.1"
 # https://mvnrepository.com/artifact/org.glassfish.tyrus.bundles/tyrus-standalone-client
-tyrus = "1.21" # bolt does not support newer than v1.x
+tyrus = "1.22" # bolt does not support newer than v1.x
 # https://mvnrepository.com/artifact/com.target/lite-for-jdbc
 liteForJdbc = "3.0.2"
 

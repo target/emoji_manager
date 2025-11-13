@@ -3,14 +3,14 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.21")
         classpath(libs.ktlint)
     }
 }
 
 plugins {
     application
-    kotlin("jvm") version "2.2.0"
+    kotlin("jvm") version "2.2.21"
     id("jacoco")
     alias(libs.plugins.ktlint)
 }
@@ -49,7 +49,7 @@ dependencies {
     implementation(libs.tyrusClient)
     implementation(libs.bundles.slf4j)
 
-    testImplementation("com.h2database:h2:2.3.232")
+    testImplementation("com.h2database:h2:2.4.240")
     testImplementation(kotlin("test-junit"))
 }
 
