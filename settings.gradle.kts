@@ -15,6 +15,7 @@ dependencyResolutionManagement {
 rootProject.children.forEach {
     renameBuildFiles(it)
 }
+
 fun renameBuildFiles(descriptor: ProjectDescriptor) {
     descriptor.buildFileName = "${descriptor.name}.gradle.kts"
     descriptor.children.forEach {
