@@ -14,45 +14,54 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
-class AppHomeHandler(private val config: Config, private val emojiService: EmojiService) {
-
+class AppHomeHandler(
+    private val config: Config,
+    private val emojiService: EmojiService
+) {
     companion object {
-        enum class Action(val actionId: String) {
+        enum class Action(
+            val actionId: String
+        ) {
             PROPOSALS("home_current_proposals"),
             NEW("home_new_emoji"),
             HELP("home_help"),
             ERRORS("home_recent_errors"),
         }
-        fun getActionByName(name: String): Action {
-            return when (name) {
+
+        fun getActionByName(name: String): Action =
+            when (name) {
                 Action.PROPOSALS.actionId -> Action.PROPOSALS
                 Action.NEW.actionId -> Action.NEW
                 Action.ERRORS.actionId -> Action.ERRORS
                 Action.HELP.actionId -> Action.HELP
                 else -> Action.PROPOSALS
             }
-        }
     }
 
     private val logger: Logger = LoggerFactory.getLogger(AppHomeHandler::class.java)
 
-    fun handleAppHomeOpened(event: AppHomeOpenedEvent, ctx: EventContext) {
-        val tab = if (event.view != null) {
-            getActionByName(event.view.privateMetadata)
-        } else {
-            Action.PROPOSALS
-        }
+    fun handleAppHomeOpened(
+        event: AppHomeOpenedEvent,
+        ctx: EventContext
+    ) {
+        val tab =
+            if (event.view != null) {
+                getActionByName(event.view.privateMetadata)
+            } else {
+                Action.PROPOSALS
+            }
 
         try {
             val appHomeView = generateHomeView(tab = tab, user = event.user)
 
             // Update the App Home for the given user
-            val res = ctx.client().viewsPublish {
-                it
-                    .userId(event.user)
-                    .hash(event.view?.hash) // To protect against possible race conditions
-                    .view(appHomeView)
-            }
+            val res =
+                ctx.client().viewsPublish {
+                    it
+                        .userId(event.user)
+                        .hash(event.view?.hash) // To protect against possible race conditions
+                        .view(appHomeView)
+                }
             if (!res.isOk) {
                 logger.error("Error posting app home view: ${res.error} ${res.responseMetadata}")
             }
@@ -61,7 +70,10 @@ class AppHomeHandler(private val config: Config, private val emojiService: Emoji
         }
     }
 
-    fun handleButtonClick(req: BlockActionRequest, ctx: ActionContext) {
+    fun handleButtonClick(
+        req: BlockActionRequest,
+        ctx: ActionContext
+    ) {
         var tab = Action.PROPOSALS
 
         for (action in req.payload.actions) {
@@ -74,12 +86,13 @@ class AppHomeHandler(private val config: Config, private val emojiService: Emoji
             val appHomeView = generateHomeView(tab = tab, user = req.payload.user.id)
 
             // Update the App Home for the given user
-            val res = ctx.client().viewsPublish {
-                it
-                    .userId(req.payload.user.id)
-                    .hash(req.payload.view?.hash) // To protect against possible race conditions
-                    .view(appHomeView)
-            }
+            val res =
+                ctx.client().viewsPublish {
+                    it
+                        .userId(req.payload.user.id)
+                        .hash(req.payload.view?.hash) // To protect against possible race conditions
+                        .view(appHomeView)
+                }
             if (!res.isOk) {
                 logger.error("Error posting app home view: ${res.error} ${res.responseMetadata}")
             }
@@ -88,29 +101,44 @@ class AppHomeHandler(private val config: Config, private val emojiService: Emoji
         }
     }
 
-    private fun generateHomeView(tab: Action, user: String): View {
-        val homeView = view {
-            it.type("home")
-            it.privateMetadata(tab.actionId)
-            it.blocks {
-                generateButtonList(this, tab, user)
-                when (tab) {
-                    Action.PROPOSALS ->
-                        generateProposalList(this, user)
-                    Action.NEW ->
-                        generateRecentEmojiList(this, user)
-                    Action.HELP ->
-                        generateHelp(this, user)
-                    Action.ERRORS ->
-                        generateRecentErrorList(this, user)
+    private fun generateHomeView(
+        tab: Action,
+        user: String
+    ): View {
+        val homeView =
+            view {
+                it.type("home")
+                it.privateMetadata(tab.actionId)
+                it.blocks {
+                    generateButtonList(this, tab, user)
+                    when (tab) {
+                        Action.PROPOSALS -> {
+                            generateProposalList(this, user)
+                        }
+
+                        Action.NEW -> {
+                            generateRecentEmojiList(this, user)
+                        }
+
+                        Action.HELP -> {
+                            generateHelp(this, user)
+                        }
+
+                        Action.ERRORS -> {
+                            generateRecentErrorList(this, user)
+                        }
+                    }
                 }
             }
-        }
 
         return homeView
     }
 
-    private fun generateButtonList(blocks: LayoutBlockDsl, tab: Action, user: String) {
+    private fun generateButtonList(
+        blocks: LayoutBlockDsl,
+        tab: Action,
+        user: String
+    ) {
         blocks.run {
             actions {
                 elements {
@@ -151,13 +179,18 @@ class AppHomeHandler(private val config: Config, private val emojiService: Emoji
         }
     }
 
-    private fun generateProposalList(blocks: LayoutBlockDsl, user: String) {
+    private fun generateProposalList(
+        blocks: LayoutBlockDsl,
+        user: String
+    ) {
         // We only get 100 total blocks.  Each proposal is 3 blocks, plus the headers
         // so we should limit ourselves to 32 results.  Sort the query desc to
         // get the most recent, but then sort the results asc to put the oldest on
         // top.
-        val newProposals = emojiService.findProposalsByState(Proposals.STATE_NEW, 32)
-            .sortedBy { it.created }
+        val newProposals =
+            emojiService
+                .findProposalsByState(Proposals.STATE_NEW, 32)
+                .sortedBy { it.created }
 
         blocks.run {
             section {
@@ -169,14 +202,20 @@ class AppHomeHandler(private val config: Config, private val emojiService: Emoji
                     val tallyResult = emojiService.tallyVotes(prop)
                     val inCommentPeriod =
                         prop.created.plusBusinessDays(config.votes.commentPeriod).isAfter(LocalDateTime.now())
-                    var body = when (prop.action) {
-                        Proposals.ACTION_ADD ->
-                            ":heavy_plus_sign:`:${prop.emoji}:` "
-                        Proposals.ACTION_REMOVE ->
-                            ":heavy_minus_sign:`:${prop.emoji}:` "
-                        else ->
-                            ""
-                    }
+                    var body =
+                        when (prop.action) {
+                            Proposals.ACTION_ADD -> {
+                                ":heavy_plus_sign:`:${prop.emoji}:` "
+                            }
+
+                            Proposals.ACTION_REMOVE -> {
+                                ":heavy_minus_sign:`:${prop.emoji}:` "
+                            }
+
+                            else -> {
+                                ""
+                            }
+                        }
 
                     if (prop.alias) body += "(alias for `:${prop.cname}:` :${prop.cname}:) "
 
@@ -191,7 +230,9 @@ class AppHomeHandler(private val config: Config, private val emojiService: Emoji
 
                 context {
                     elements {
-                        markdownText("by <@${prop.user}> on <!date^${prop.created.toEpochSecond(ZoneOffset.UTC)}^{date} {time}|${prop.created}>")
+                        markdownText(
+                            "by <@${prop.user}> on <!date^${prop.created.toEpochSecond(ZoneOffset.UTC)}^{date} {time}|${prop.created}>"
+                        )
                         if (emojiService.userIsAdmin(user)) {
                             markdownText("_( ${prop.id} )_")
                         }
@@ -201,14 +242,19 @@ class AppHomeHandler(private val config: Config, private val emojiService: Emoji
         }
     }
 
-    private fun generateRecentEmojiList(blocks: LayoutBlockDsl, user: String) {
+    private fun generateRecentEmojiList(
+        blocks: LayoutBlockDsl,
+        user: String
+    ) {
         // We only get 100 total blocks.  Each emoji is 3 blocks, plus the headers
         // so we should limit ourselves to 32 results.  Sort the query desc to
         // get the most recent, but then sort the results asc to put the oldest on
         // top.
 
-        val recentlyAdded = emojiService.getRecentlyAdded()
-            .sortedBy { it.second }
+        val recentlyAdded =
+            emojiService
+                .getRecentlyAdded()
+                .sortedBy { it.second }
 
         blocks.run {
             section {
@@ -238,7 +284,10 @@ class AppHomeHandler(private val config: Config, private val emojiService: Emoji
         }
     }
 
-    private fun generateHelp(blocks: LayoutBlockDsl, user: String) {
+    private fun generateHelp(
+        blocks: LayoutBlockDsl,
+        user: String
+    ) {
         blocks.run {
             section {
                 markdownText("${config.text.intro}\n${config.text.homeAdvanced}\n${config.text.help.general}")
@@ -282,15 +331,20 @@ class AppHomeHandler(private val config: Config, private val emojiService: Emoji
         }
     }
 
-    private fun generateRecentErrorList(blocks: LayoutBlockDsl, user: String) {
+    private fun generateRecentErrorList(
+        blocks: LayoutBlockDsl,
+        user: String
+    ) {
         // We only get 100 total blocks.  Each log entry is 3 blocks, plus the headers
         // so we should limit ourselves to 32 results.  Sort the query desc to
         // get the most recent, but then sort the results asc to put the oldest on
         // top.
 
         if (emojiService.userIsAdmin(user)) {
-            val recentErrors = emojiService.getRecentErrors()
-                .sortedBy { it.second.date }
+            val recentErrors =
+                emojiService
+                    .getRecentErrors()
+                    .sortedBy { it.second.date }
 
             blocks.run {
                 section {

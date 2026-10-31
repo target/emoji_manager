@@ -12,17 +12,17 @@ import com.target.slack.hashString
 import org.junit.Test
 
 class TestModels {
-
     @Test
     fun testModels() {
         // Database.connect("jdbc:h2:mem:test", driver = "org.h2.Driver", user = "root", password = "")
-        val db = Db(
-            DbConfig(
-                databaseName = "emojimanagerdocker",
-                username = "emojimanager_app",
-                password = "emojimanager_app",
+        val db =
+            Db(
+                DbConfig(
+                    databaseName = "emojimanagerdocker",
+                    username = "emojimanager_app",
+                    password = "emojimanager_app",
+                )
             )
-        )
         // TODO: Create tables
         // SchemaUtils.create(EmojiFiles, Proposals, Emojis, AuditLog)
 
@@ -36,23 +36,25 @@ class TestModels {
         var propFile = emojiFiles.findFileBySha1(rawSha1)
 
         if (propFile == null) {
-            propFile = emojiFiles.upsert(
-                EmojiFile(
-                    sha1 = rawSha1,
-                    file = rawFile,
-                    contentType = "image/png",
+            propFile =
+                emojiFiles.upsert(
+                    EmojiFile(
+                        sha1 = rawSha1,
+                        file = rawFile,
+                        contentType = "image/png",
+                    )
                 )
-            )
         }
 
-        var propEmoji = proposals.upsert(
-            Proposal(
-                emoji = "test",
-                thread = "123456",
-                fileId = propFile.sha1,
-                user = "W1234",
+        var propEmoji =
+            proposals.upsert(
+                Proposal(
+                    emoji = "test",
+                    thread = "123456",
+                    fileId = propFile.sha1,
+                    user = "W1234",
+                )
             )
-        )
 
         auditLog.insert(
             AuditEntry(
@@ -72,14 +74,15 @@ class TestModels {
 
         var emoji = emojis.findEmojiByName("test")
         if (emoji == null) {
-            emoji = emojis.upsert(
-                Emoji(
-                    name = propEmoji.emoji,
-                    alias = propEmoji.alias,
-                    file = propEmoji.fileId,
-                    proposalId = propEmoji.id,
+            emoji =
+                emojis.upsert(
+                    Emoji(
+                        name = propEmoji.emoji,
+                        alias = propEmoji.alias,
+                        file = propEmoji.fileId,
+                        proposalId = propEmoji.id,
+                    )
                 )
-            )
         }
 
         auditLog.insert(

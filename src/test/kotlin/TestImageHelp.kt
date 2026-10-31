@@ -86,7 +86,8 @@ class TestImageHelp {
         with(writer.prepareStream(bytes, BufferedImage.TYPE_INT_ARGB)) {
             for (i in 0..49) {
                 writeFrame(
-                    ImmutableImage.create(512, 512)
+                    ImmutableImage
+                        .create(512, 512)
                         .fill(
                             LinearGradient.vertical(
                                 Color(Random.nextInt(0xFFFFFF)),

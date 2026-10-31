@@ -30,13 +30,15 @@ data class DatabaseConfig(
     val adminPassword: Masked,
     val autoMigrate: Boolean,
 )
+
 data class VoteConfig(
     val commentPeriod: Long = 1, // in business days; how long to wait before vote tallying happens
     val maxDuration: Long = 30, // in business days; how long a proposal can live before it is closed
     val winBy: Int = 5, // How many more
     val tallySchedule: Long = 30, // in minutes; how frequently to tally votes of all open proposals
     // Populate this via config file
-    val calendarHolidays: List<LocalDate> = listOf(), // a list of dates in the format of YYYY-MM-DD (2023-01-02) that are considered holidays
+    // Dates in YYYY-MM-DD format (for example, 2023-01-02) that are treated as holidays.
+    val calendarHolidays: List<LocalDate> = listOf(),
     val downVoteThreshold: Int = 5, // How many downvotes before admins are notified
 )
 
@@ -56,7 +58,6 @@ data class TextConfig(
     val intro: String,
     val homeAdvanced: String,
     val help: HelpText,
-
     val upvote: String = "white_check_mark", // changing these from the defaults is untested and may not work correctly
     val downvote: String = "x",
     val force: String = "large_green_circle",
@@ -117,9 +118,10 @@ fun buildOrderedSources(): List<PropertySource> {
  * Load config for the given class destination
  */
 inline fun <reified T> loadConfig(): T {
-    val configBuilder = ConfigLoaderBuilder
-        .default()
-        .allowUnresolvedSubstitutions()
+    val configBuilder =
+        ConfigLoaderBuilder
+            .default()
+            .allowUnresolvedSubstitutions()
 
     val logger: Logger = LoggerFactory.getLogger(Config::class.java)
 

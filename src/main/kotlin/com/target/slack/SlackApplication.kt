@@ -20,21 +20,24 @@ import java.util.concurrent.SynchronousQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
-class SlackApplication(private val config: Config, db: Db) {
-
+class SlackApplication(
+    private val config: Config,
+    db: Db
+) {
     private var logger: Logger = LoggerFactory.getLogger(SlackApplication::class.java)
 
     private val corePoolSize = 2
     private val maximumPoolSize = corePoolSize * 2
     private val keepAliveTime = 100L
     private val workQueue = SynchronousQueue<Runnable>()
-    private val workerPool: ExecutorService = ThreadPoolExecutor(
-        corePoolSize,
-        maximumPoolSize,
-        keepAliveTime,
-        TimeUnit.SECONDS,
-        workQueue
-    )
+    private val workerPool: ExecutorService =
+        ThreadPoolExecutor(
+            corePoolSize,
+            maximumPoolSize,
+            keepAliveTime,
+            TimeUnit.SECONDS,
+            workQueue
+        )
     private val worker = Executors.newSingleThreadScheduledExecutor()
 
     private val emojiService = EmojiService(config, db)
@@ -45,12 +48,14 @@ class SlackApplication(private val config: Config, db: Db) {
     private val appHomeHandler = AppHomeHandler(config, emojiService)
 
     fun initBoltApp(): App {
-        val appConfig: AppConfig = AppConfig.builder()
-            .signingSecret(config.slack.slackSigningSecret.value)
-            .singleTeamBotToken(config.slack.slackBotToken.value)
-            .allEventsApiAutoAckEnabled(true)
-            .subtypedMessageEventsAutoAckEnabled(true)
-            .build()
+        val appConfig: AppConfig =
+            AppConfig
+                .builder()
+                .signingSecret(config.slack.slackSigningSecret.value)
+                .singleTeamBotToken(config.slack.slackBotToken.value)
+                .allEventsApiAutoAckEnabled(true)
+                .subtypedMessageEventsAutoAckEnabled(true)
+                .build()
 
         val app = App(appConfig)
 
@@ -134,21 +139,24 @@ fun main() {
     val config = loadConfig<Config>()
 
     if (config.database.autoMigrate) {
-        val flyway = Flyway.configure()
-            .dataSource(config.database.url, config.database.adminUsername, config.database.adminPassword.value)
-            .load()
+        val flyway =
+            Flyway
+                .configure()
+                .dataSource(config.database.url, config.database.adminUsername, config.database.adminPassword.value)
+                .load()
         flyway.migrate()
     }
-    val db = Db(
-        dbConfigFromUrl(
-            DbConfig(
-                databaseName = "emojimanagerdev",
-                jdbcUrl = config.database.url,
-                username = config.database.username,
-                password = config.database.password.value,
+    val db =
+        Db(
+            dbConfigFromUrl(
+                DbConfig(
+                    databaseName = "emojimanagerdev",
+                    jdbcUrl = config.database.url,
+                    username = config.database.username,
+                    password = config.database.password.value,
+                )
             )
         )
-    )
     val slackApp = SlackApplication(config, db)
     val boltApp = slackApp.initBoltApp()
 
@@ -157,7 +165,9 @@ fun main() {
     http4KEmojiManagerApp.asServer(SunHttp(config.server.port)).start()
 
     // This is for local testing only. Eventually get rid of socket mode here
-    if (config.slack.slackAppToken.value.isEmpty()) {
+    if (config.slack.slackAppToken.value
+            .isEmpty()
+    ) {
         val socket = SocketModeApp(boltApp)
         socket.start()
     }

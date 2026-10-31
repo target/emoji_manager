@@ -14,33 +14,36 @@ data class EmojiFile(
     var contentType: String
 ) {
     companion object {
-        fun rowMapper(resultSet: ResultSet): EmojiFile = with(resultSet) {
-            EmojiFile(
-                sha1 = getString("sha1"),
-                file = getBytes("file"),
-                contentType = getString("content_type")
-            )
-        }
+        fun rowMapper(resultSet: ResultSet): EmojiFile =
+            with(resultSet) {
+                EmojiFile(
+                    sha1 = getString("sha1"),
+                    file = getBytes("file"),
+                    contentType = getString("content_type")
+                )
+            }
     }
 }
 
-class EmojiFiles(private val db: Db) {
-
-    fun upsert(emojiFile: EmojiFile): EmojiFile {
-        return checkNotNull(
+class EmojiFiles(
+    private val db: Db
+) {
+    fun upsert(emojiFile: EmojiFile): EmojiFile =
+        checkNotNull(
             db.executeQuery(
-                sql = """
+                sql =
+                    """
                     INSERT INTO emojifiles (sha1, file, content_type)
                       VALUES (:sha1, :file, :contentType)
                     ON CONFLICT (sha1) DO UPDATE
                       SET file = :file, content_type = :contentType
                     RETURNING *
-                """.trimIndent(),
+                    """.trimIndent(),
                 args = emojiFile.propertiesToMap(),
                 rowMapper = EmojiFile::rowMapper
             )
         ) { "Unexpected state: Insert didn't return a result." }
-    }
+
     fun findFileBySha1(sha1: String): EmojiFile? =
         db.executeQuery(
             sql = "SELECT * FROM emojifiles WHERE sha1 = :sha1",
@@ -64,11 +67,9 @@ data class Proposal(
     var previewFile: String? = null, // Slack File ID
     var previewUrl: String? = null,
 ) {
-
     companion object {
-
-        fun rowMapper(resultSet: ResultSet): Proposal {
-            return Proposal(
+        fun rowMapper(resultSet: ResultSet): Proposal =
+            Proposal(
                 id = checkNotNull(resultSet.getUUID("id")) { "Unexpected: Got a record without an id" },
                 created = checkNotNull(resultSet.getLocalDateTime("created")) { "Unexpected: Got a record without a date" },
                 state = resultSet.getString("state"),
@@ -83,12 +84,12 @@ data class Proposal(
                 previewFile = resultSet.getString("preview_file"),
                 previewUrl = resultSet.getString("preview_url"),
             )
-        }
     }
 }
 
-class Proposals(private val db: Db) {
-
+class Proposals(
+    private val db: Db
+) {
     companion object {
         const val UPVOTE = "white_check_mark"
         const val DOWNVOTE = "x"
@@ -106,25 +107,27 @@ class Proposals(private val db: Db) {
         const val ACTION_ADD = "add"
         const val ACTION_REMOVE = "remove"
     }
-    fun upsert(proposal: Proposal): Proposal {
-        return db.withTransaction { tx ->
-            val newProposal = checkNotNull(
-                tx.executeQuery(
-                    sql = """
-                        INSERT INTO proposals (id, created, state, action, emoji, file, alias, cname, thread, permalink, "user", preview_file, preview_url)
-                        VALUES (:id, :created, :state, :action, :emoji, :fileId, :alias, :cname, :thread, :permalink, :user, :previewFile, :previewUrl)
-                        ON CONFLICT (id) DO UPDATE
-                        SET created = :created, state = :state, action = :action, emoji = :emoji, file = :fileId, alias = :alias, cname = :cname, thread = :thread, permalink = :permalink, "user" = :user, preview_file = :previewFile, preview_url = :previewUrl
-                        RETURNING *
-                    """.trimIndent(),
-                    args = proposal.propertiesToMap(),
-                    rowMapper = Proposal::rowMapper
-                )
-            ) { "Unexpected state: Insert didn't return a result." }
+
+    fun upsert(proposal: Proposal): Proposal =
+        db.withTransaction { tx ->
+            val newProposal =
+                checkNotNull(
+                    tx.executeQuery(
+                        sql =
+                            """
+                            INSERT INTO proposals (id, created, state, action, emoji, file, alias, cname, thread, permalink, "user", preview_file, preview_url)
+                            VALUES (:id, :created, :state, :action, :emoji, :fileId, :alias, :cname, :thread, :permalink, :user, :previewFile, :previewUrl)
+                            ON CONFLICT (id) DO UPDATE
+                            SET created = :created, state = :state, action = :action, emoji = :emoji, file = :fileId, alias = :alias, cname = :cname, thread = :thread, permalink = :permalink, "user" = :user, preview_file = :previewFile, preview_url = :previewUrl
+                            RETURNING *
+                            """.trimIndent(),
+                        args = proposal.propertiesToMap(),
+                        rowMapper = Proposal::rowMapper
+                    )
+                ) { "Unexpected state: Insert didn't return a result." }
 
             newProposal
         }
-    }
 
     fun findByThread(thread: String): Proposal? =
         db.executeQuery(
@@ -133,12 +136,16 @@ class Proposals(private val db: Db) {
             rowMapper = Proposal::rowMapper
         )
 
-    fun findAllByState(state: String, limit: Int? = null): List<Proposal> {
-        val limitSql = if (limit != null) {
-            "LIMIT :limit"
-        } else {
-            ""
-        }
+    fun findAllByState(
+        state: String,
+        limit: Int? = null
+    ): List<Proposal> {
+        val limitSql =
+            if (limit != null) {
+                "LIMIT :limit"
+            } else {
+                ""
+            }
 
         return db.findAll(
             sql = "SELECT * FROM proposals WHERE state = :state ORDER BY created DESC $limitSql",
@@ -154,9 +161,13 @@ class Proposals(private val db: Db) {
             rowMapper = Proposal::rowMapper
         )
 
-    fun getRecentlyAdded(days: Long = 14, limit: Int = 32): List<Pair<Proposal, LocalDateTime>> {
-        return db.findAll(
-            sql = """
+    fun getRecentlyAdded(
+        days: Long = 14,
+        limit: Int = 32
+    ): List<Pair<Proposal, LocalDateTime>> =
+        db.findAll(
+            sql =
+                """
                 SELECT a.date as added_date, p.*
                 FROM auditlog as a, proposals as p
                 WHERE
@@ -165,12 +176,13 @@ class Proposals(private val db: Db) {
                     a.date > :dateLimit
                 ORDER BY a.date DESC
                 LIMIT :limit
-            """.trimIndent(),
-            args = mapOf(
-                "action" to AuditLog.ACTION_SYSTEM_UPLOAD,
-                "limit" to limit,
-                "dateLimit" to LocalDateTime.now().minusDays(days)
-            ),
+                """.trimIndent(),
+            args =
+                mapOf(
+                    "action" to AuditLog.ACTION_SYSTEM_UPLOAD,
+                    "limit" to limit,
+                    "dateLimit" to LocalDateTime.now().minusDays(days)
+                ),
             rowMapper = { resultSet ->
                 Pair(
                     Proposal.rowMapper(resultSet),
@@ -178,11 +190,14 @@ class Proposals(private val db: Db) {
                 )
             }
         )
-    }
 
-    fun getRecentErrors(days: Long = 14, limit: Int = 32): List<Pair<Proposal, AuditEntry>> {
-        return db.findAll(
-            sql = """
+    fun getRecentErrors(
+        days: Long = 14,
+        limit: Int = 32
+    ): List<Pair<Proposal, AuditEntry>> =
+        db.findAll(
+            sql =
+                """
                 SELECT a.id as a_id, a.date as a_date, a.actor_id as a_actor_id, a.action as a_action,
                        a.proposal as a_proposal, a.emoji as a_emoji, a.note as a_note, p.*
                 FROM auditlog as a, proposals as p
@@ -192,12 +207,13 @@ class Proposals(private val db: Db) {
                     a.date > :dateLimit
                 ORDER BY a.date DESC 
                 LIMIT :limit
-            """.trimIndent(),
-            args = mapOf(
-                "action" to AuditLog.ACTION_SYSTEM_FAIL,
-                "limit" to limit,
-                "dateLimit" to LocalDateTime.now().minusDays(days)
-            ),
+                """.trimIndent(),
+            args =
+                mapOf(
+                    "action" to AuditLog.ACTION_SYSTEM_FAIL,
+                    "limit" to limit,
+                    "dateLimit" to LocalDateTime.now().minusDays(days)
+                ),
             rowMapper = { resultSet ->
                 Pair(
                     Proposal.rowMapper(resultSet),
@@ -213,7 +229,6 @@ class Proposals(private val db: Db) {
                 )
             }
         )
-    }
 }
 
 data class Emoji(
@@ -225,8 +240,8 @@ data class Emoji(
     var proposalId: UUID,
 ) {
     companion object {
-        fun rowMapper(resultSet: ResultSet): Emoji {
-            return Emoji(
+        fun rowMapper(resultSet: ResultSet): Emoji =
+            Emoji(
                 name = resultSet.getString("name"),
                 file = resultSet.getString("file"),
                 alias = resultSet.getBoolean("alias"),
@@ -234,31 +249,32 @@ data class Emoji(
                 updated = checkNotNull(resultSet.getLocalDateTime("updated")) { "Unexpected: got a record without an updated date" },
                 proposalId = checkNotNull(resultSet.getUUID("proposal")) { "Unexpected: got a record without a proposal ID" },
             )
-        }
     }
 }
 
-class Emojis(private val db: Db) {
-
-    fun upsert(emoji: Emoji): Emoji {
-        return db.withTransaction { tx ->
-            val newEmoji = checkNotNull(
-                tx.executeQuery(
-                    sql = """
-                    INSERT INTO emojis (name, file, alias, cname, updated, proposal)
-                    VALUES (:name, :file, :alias, :cname, :updated, :proposalId)
-                    ON CONFLICT (name) DO UPDATE
-                    SET file = :file, alias = :alias, cname = :cname, updated = :updated, proposal = :proposalId
-                    RETURNING *
-                    """.trimIndent(),
-                    args = emoji.propertiesToMap(),
-                    rowMapper = Emoji::rowMapper
-                )
-            ) { "Unexpected state: Insert didn't return a result." }
+class Emojis(
+    private val db: Db
+) {
+    fun upsert(emoji: Emoji): Emoji =
+        db.withTransaction { tx ->
+            val newEmoji =
+                checkNotNull(
+                    tx.executeQuery(
+                        sql =
+                            """
+                            INSERT INTO emojis (name, file, alias, cname, updated, proposal)
+                            VALUES (:name, :file, :alias, :cname, :updated, :proposalId)
+                            ON CONFLICT (name) DO UPDATE
+                            SET file = :file, alias = :alias, cname = :cname, updated = :updated, proposal = :proposalId
+                            RETURNING *
+                            """.trimIndent(),
+                        args = emoji.propertiesToMap(),
+                        rowMapper = Emoji::rowMapper
+                    )
+                ) { "Unexpected state: Insert didn't return a result." }
 
             newEmoji
         }
-    }
 
     fun findEmojiByName(name: String): Emoji? =
         db.executeQuery(
@@ -284,9 +300,8 @@ data class AuditEntry(
     var note: String? = null,
 ) {
     companion object {
-
-        fun rowMapper(resultSet: ResultSet): AuditEntry {
-            return AuditEntry(
+        fun rowMapper(resultSet: ResultSet): AuditEntry =
+            AuditEntry(
                 id = checkNotNull(resultSet.getUUID("id")) { "Unexpected: Got a record without an id" },
                 date = checkNotNull(resultSet.getLocalDateTime("date")) { "Unexpected: Got a record without a date" },
                 actorId = resultSet.getString("actor_id"),
@@ -295,12 +310,12 @@ data class AuditEntry(
                 emoji = resultSet.getString("emoji"),
                 note = resultSet.getString("note"),
             )
-        }
     }
 }
 
-class AuditLog(private val db: Db) {
-
+class AuditLog(
+    private val db: Db
+) {
     companion object {
         const val ACTION_PROPOSE_NEW = "propose:new"
         const val ACTION_PROPOSE_DEL = "propose:delete"
@@ -323,23 +338,24 @@ class AuditLog(private val db: Db) {
         const val ACTOR_ID_SYSTEM = "system"
     }
 
-    fun insert(entry: AuditEntry): AuditEntry {
-        return db.withTransaction { tx ->
-            val newEntry = checkNotNull(
-                tx.executeQuery(
-                    sql = """
-                    INSERT INTO auditlog (id, date, actor_id, action, proposal, emoji, note)
-                    VALUES (:id, :date, :actorId, :action, :proposalId, :emoji, :note)
-                    RETURNING *
-                    """.trimIndent(),
-                    args = entry.propertiesToMap(),
-                    rowMapper = AuditEntry::rowMapper
-                )
-            ) { "Unexpected state: Insert didnt return a result." }
+    fun insert(entry: AuditEntry): AuditEntry =
+        db.withTransaction { tx ->
+            val newEntry =
+                checkNotNull(
+                    tx.executeQuery(
+                        sql =
+                            """
+                            INSERT INTO auditlog (id, date, actor_id, action, proposal, emoji, note)
+                            VALUES (:id, :date, :actorId, :action, :proposalId, :emoji, :note)
+                            RETURNING *
+                            """.trimIndent(),
+                        args = entry.propertiesToMap(),
+                        rowMapper = AuditEntry::rowMapper
+                    )
+                ) { "Unexpected state: Insert didnt return a result." }
 
             newEntry
         }
-    }
 
     fun findByProposal(proposal: UUID): List<AuditEntry> =
         db.findAll(

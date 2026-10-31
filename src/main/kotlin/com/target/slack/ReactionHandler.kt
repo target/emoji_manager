@@ -7,52 +7,65 @@ import com.slack.api.model.event.ReactionRemovedEvent
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-class ReactionHandler(private val config: Config, private val emojiService: EmojiService) {
-
+class ReactionHandler(
+    private val config: Config,
+    private val emojiService: EmojiService
+) {
     private var logger: Logger = LoggerFactory.getLogger(ReactionHandler::class.java)
 
-    fun handleReaction(event: ReactionAddedEvent, ctx: EventContext) {
-        val action: String = if (event.reaction == Proposals.UPVOTE) {
-            AuditLog.ACTION_VOTE_UP
-        } else if (event.reaction == Proposals.DOWNVOTE) {
-            AuditLog.ACTION_VOTE_DN
-        } else if (event.reaction == Proposals.REPORT) {
-            return handleReport(event, ctx)
-        } else if (event.reaction == Proposals.FORCE && emojiService.userIsAdmin(event.user)) {
-            return handleForce(event, ctx)
-        } else if (event.reaction == Proposals.BLOCK && emojiService.userIsAdmin(event.user)) {
-            return handleBlock(event, ctx)
-        } else if (event.reaction == Proposals.WITHDRAW) {
-            return handleWithdraw(event, ctx)
-        } else {
-            return // ignore reaction types we don't care about
-        }
+    fun handleReaction(
+        event: ReactionAddedEvent,
+        ctx: EventContext
+    ) {
+        val action: String =
+            if (event.reaction == Proposals.UPVOTE) {
+                AuditLog.ACTION_VOTE_UP
+            } else if (event.reaction == Proposals.DOWNVOTE) {
+                AuditLog.ACTION_VOTE_DN
+            } else if (event.reaction == Proposals.REPORT) {
+                return handleReport(event, ctx)
+            } else if (event.reaction == Proposals.FORCE && emojiService.userIsAdmin(event.user)) {
+                return handleForce(event, ctx)
+            } else if (event.reaction == Proposals.BLOCK && emojiService.userIsAdmin(event.user)) {
+                return handleBlock(event, ctx)
+            } else if (event.reaction == Proposals.WITHDRAW) {
+                return handleWithdraw(event, ctx)
+            } else {
+                return // ignore reaction types we don't care about
+            }
 
         emojiService.recordVote(ctx, event.item.ts, event.user, action)
     }
 
-    fun handleReactionRemoved(event: ReactionRemovedEvent, ctx: EventContext) {
+    fun handleReactionRemoved(
+        event: ReactionRemovedEvent,
+        ctx: EventContext
+    ) {
         // REMOVING a reaction is the same as adding a counteracting vote. So just flip the logic.
-        val action: String = if (event.reaction == Proposals.UPVOTE) {
-            AuditLog.ACTION_VOTE_DN
-        } else if (event.reaction == Proposals.DOWNVOTE) {
-            AuditLog.ACTION_VOTE_UP
-        } else if (event.reaction == Proposals.REPORT) {
-            return handleUnReport(event, ctx)
-        } else if (event.reaction == Proposals.FORCE && emojiService.userIsAdmin(event.user)) {
-            return handleUnforce(event, ctx)
-        } else if (event.reaction == Proposals.BLOCK && emojiService.userIsAdmin(event.user)) {
-            return handleUnblock(event, ctx)
-        } else if (event.reaction == Proposals.WITHDRAW) {
-            return handleUnwithdraw(event, ctx)
-        } else {
-            return // ignore reaction types we don't care about
-        }
+        val action: String =
+            if (event.reaction == Proposals.UPVOTE) {
+                AuditLog.ACTION_VOTE_DN
+            } else if (event.reaction == Proposals.DOWNVOTE) {
+                AuditLog.ACTION_VOTE_UP
+            } else if (event.reaction == Proposals.REPORT) {
+                return handleUnReport(event, ctx)
+            } else if (event.reaction == Proposals.FORCE && emojiService.userIsAdmin(event.user)) {
+                return handleUnforce(event, ctx)
+            } else if (event.reaction == Proposals.BLOCK && emojiService.userIsAdmin(event.user)) {
+                return handleUnblock(event, ctx)
+            } else if (event.reaction == Proposals.WITHDRAW) {
+                return handleUnwithdraw(event, ctx)
+            } else {
+                return // ignore reaction types we don't care about
+            }
 
         emojiService.recordVote(ctx, event.item.ts, event.user, action)
     }
 
-    private fun handleForce(event: ReactionAddedEvent, ctx: EventContext) {
+    private fun handleForce(
+        event: ReactionAddedEvent,
+        ctx: EventContext
+    ) {
         val adminClient = Slack.getInstance().methodsAsync(config.slack.slackAdminToken.value)
         val prop = emojiService.findProposalByThread(event.item.ts)
 
@@ -78,7 +91,9 @@ class ReactionHandler(private val config: Config, private val emojiService: Emoj
                         } else {
                             ctx.client().chatPostMessage { p ->
                                 p.channel(config.slack.slackEmojiChannel)
-                                p.text("Oh no! Something went wrong with the alias. Please have an admin. look into this.\nProposal id ${prop.id}\nError: `${a.error}`")
+                                p.text(
+                                    "Oh no! Something went wrong with the alias. Please have an admin. look into this.\nProposal id ${prop.id}\nError: `${a.error}`"
+                                )
                                 p.threadTs(prop.thread)
                             }
                         }
@@ -99,7 +114,9 @@ class ReactionHandler(private val config: Config, private val emojiService: Emoj
                         } else {
                             ctx.client().chatPostMessage { p ->
                                 p.channel(config.slack.slackEmojiChannel)
-                                p.text("Oh no! Something went wrong with the upload. Please have an admin. look into this.\nProposal id ${prop.id}\nError: `${a.error}`")
+                                p.text(
+                                    "Oh no! Something went wrong with the upload. Please have an admin. look into this.\nProposal id ${prop.id}\nError: `${a.error}`"
+                                )
                                 p.threadTs(prop.thread)
                             }
                         }
@@ -121,7 +138,9 @@ class ReactionHandler(private val config: Config, private val emojiService: Emoj
                     } else {
                         ctx.client().chatPostMessage { p ->
                             p.channel(config.slack.slackEmojiChannel)
-                            p.text("Oh no! Something went wrong with the removal. Please have an admin. look into this.\nProposal id ${prop.id}\nError: `${a.error}`")
+                            p.text(
+                                "Oh no! Something went wrong with the removal. Please have an admin. look into this.\nProposal id ${prop.id}\nError: `${a.error}`"
+                            )
                             p.threadTs(prop.thread)
                         }
                     }
@@ -132,7 +151,10 @@ class ReactionHandler(private val config: Config, private val emojiService: Emoj
         } // else: reaction isn't on a proposal
     }
 
-    private fun handleUnforce(event: ReactionRemovedEvent, ctx: EventContext) {
+    private fun handleUnforce(
+        event: ReactionRemovedEvent,
+        ctx: EventContext
+    ) {
         val prop = emojiService.findProposalByThread(event.item.ts)
         if (prop == null) {
             // nothing to see here
@@ -146,7 +168,10 @@ class ReactionHandler(private val config: Config, private val emojiService: Emoj
         logger.warn("${event.user} tried to un-force a proposal ${prop.id}")
     }
 
-    private fun handleBlock(event: ReactionAddedEvent, ctx: EventContext) {
+    private fun handleBlock(
+        event: ReactionAddedEvent,
+        ctx: EventContext
+    ) {
         val prop = emojiService.findProposalByThread(event.item.ts)
         if (prop == null) {
             // nothing to see here
@@ -155,12 +180,17 @@ class ReactionHandler(private val config: Config, private val emojiService: Emoj
         emojiService.recordVote(ctx, event.item.ts, event.user, AuditLog.ACTION_ADMIN_BLOCK)
         ctx.client().chatPostMessage { p ->
             p.channel(event.item.channel)
-            p.text("<@${event.user}> has blocked this proposal. Voting may continue, but the votes will not be counted unless <@${event.user}> unblocks this proposal before the voting period ends.")
+            p.text(
+                "<@${event.user}> has blocked this proposal. Voting may continue, but the votes will not be counted unless <@${event.user}> unblocks this proposal before the voting period ends."
+            )
             p.threadTs(event.item.ts)
         }
     }
 
-    private fun handleUnblock(event: ReactionRemovedEvent, ctx: EventContext) {
+    private fun handleUnblock(
+        event: ReactionRemovedEvent,
+        ctx: EventContext
+    ) {
         val prop = emojiService.findProposalByThread(event.item.ts)
         if (prop == null) {
             // nothing to see here
@@ -174,7 +204,10 @@ class ReactionHandler(private val config: Config, private val emojiService: Emoj
         }
     }
 
-    private fun handleWithdraw(event: ReactionAddedEvent, ctx: EventContext) {
+    private fun handleWithdraw(
+        event: ReactionAddedEvent,
+        ctx: EventContext
+    ) {
         val prop = emojiService.findProposalByThread(event.item.ts)
 
         if (prop == null || prop.state != Proposals.STATE_NEW) {
@@ -192,7 +225,10 @@ class ReactionHandler(private val config: Config, private val emojiService: Emoj
         }
     }
 
-    private fun handleUnwithdraw(event: ReactionRemovedEvent, ctx: EventContext) {
+    private fun handleUnwithdraw(
+        event: ReactionRemovedEvent,
+        ctx: EventContext
+    ) {
         val prop = emojiService.findProposalByThread(event.item.ts)
         if (prop == null || prop.user != event.user) {
             // nothing to see here
@@ -206,7 +242,10 @@ class ReactionHandler(private val config: Config, private val emojiService: Emoj
         logger.warn("${event.user} tried to un-withdraw a proposal ${prop.id}")
     }
 
-    private fun handleReport(event: ReactionAddedEvent, ctx: EventContext) {
+    private fun handleReport(
+        event: ReactionAddedEvent,
+        ctx: EventContext
+    ) {
         val prop = emojiService.findProposalByThread(event.item.ts)
         if (prop == null) {
             // nothing to see here
@@ -222,28 +261,38 @@ class ReactionHandler(private val config: Config, private val emojiService: Emoj
             if (tallyResult.userReport > 0) {
                 return
             }
-            var body = when (prop.action) {
-                Proposals.ACTION_ADD ->
-                    ":heavy_plus_sign:`:${prop.emoji}:` "
-                Proposals.ACTION_REMOVE ->
-                    ":heavy_minus_sign:`:${prop.emoji}:` "
-                else ->
-                    ""
-            }
+            var body =
+                when (prop.action) {
+                    Proposals.ACTION_ADD -> {
+                        ":heavy_plus_sign:`:${prop.emoji}:` "
+                    }
+
+                    Proposals.ACTION_REMOVE -> {
+                        ":heavy_minus_sign:`:${prop.emoji}:` "
+                    }
+
+                    else -> {
+                        ""
+                    }
+                }
 
             if (prop.alias) body += "(alias for `:${prop.cname}:` :${prop.cname}:) "
 
             body += "<${prop.permalink}|Thread> "
             if (tallyResult.block - tallyResult.unblock > 0) body += ":${Proposals.BLOCK}: "
 
-            body += "${tallyResult.up}:${Proposals.UPVOTE}: ${tallyResult.down}:${Proposals.DOWNVOTE}: net: ${tallyResult.up - tallyResult.down}"
+            body +=
+                "${tallyResult.up}:${Proposals.UPVOTE}: ${tallyResult.down}:${Proposals.DOWNVOTE}: net: ${tallyResult.up - tallyResult.down}"
             if (tallyResult.up - tallyResult.down > config.votes.winBy) body += ":+1: "
 
             emojiService.postAdminChannelMessage("<@${event.user}> has reported $body")
         }
     }
 
-    private fun handleUnReport(event: ReactionRemovedEvent, ctx: EventContext) {
+    private fun handleUnReport(
+        event: ReactionRemovedEvent,
+        ctx: EventContext
+    ) {
         val prop = emojiService.findProposalByThread(event.item.ts)
         if (prop == null) {
             // nothing to see here

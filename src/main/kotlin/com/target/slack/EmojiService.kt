@@ -13,12 +13,24 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID
 
-data class TallyResult(val up: Int = 0, val down: Int = 0, val block: Int = 0, val unblock: Int = 0, val userReport: Int = 0, val systemReport: Int = 0)
+data class TallyResult(
+    val up: Int = 0,
+    val down: Int = 0,
+    val block: Int = 0,
+    val unblock: Int = 0,
+    val userReport: Int = 0,
+    val systemReport: Int = 0
+)
 
-data class Files(val id: String, val title: String)
+data class Files(
+    val id: String,
+    val title: String
+)
 
-class EmojiService(private val config: Config, private val db: Db) {
-
+class EmojiService(
+    private val config: Config,
+    private val db: Db
+) {
     private val logger: Logger = LoggerFactory.getLogger(EmojiService::class.java)
 
     private var emojis = Emojis(db)
@@ -26,10 +38,16 @@ class EmojiService(private val config: Config, private val db: Db) {
     private var proposals = Proposals(db)
     private var auditLog = AuditLog(db)
 
-    fun generateProposal(ctx: Context, requester: String, fileId: String, comment: String?): Result<Proposal> {
-        val proposalFileInfo = ctx.client().filesInfo {
-            it.file(fileId)
-        }
+    fun generateProposal(
+        ctx: Context,
+        requester: String,
+        fileId: String,
+        comment: String?
+    ): Result<Proposal> {
+        val proposalFileInfo =
+            ctx.client().filesInfo {
+                it.file(fileId)
+            }
         if (!proposalFileInfo.isOk) {
             logger.warn("Error getting file info: ${proposalFileInfo.error}")
             return Result.failure(Exception("Error getting file info: ${proposalFileInfo.error}"))
@@ -42,9 +60,10 @@ class EmojiService(private val config: Config, private val db: Db) {
 
         val warnings = ImageHelp.checkSize(rawFileBytes)
 
-        val previewResult = ImageHelp.runCatching {
-            generatePreview(rawFileBytes)
-        }
+        val previewResult =
+            ImageHelp.runCatching {
+                generatePreview(rawFileBytes)
+            }
 
         if (previewResult.isFailure) {
             return Result.failure(Exception(previewResult.exceptionOrNull()))
@@ -62,34 +81,45 @@ class EmojiService(private val config: Config, private val db: Db) {
         // Does "image/apng" work? What about "image/webp"?
         if (rawFile.mimetype !in arrayListOf("image/png", "image/jpg", "image/jpeg", "image/gif")) {
             logger.info("Got a proposal with image type ${rawFile.mimetype}, rejecting.")
-            return Result.failure(Exception("That's a nice file you have, there.  Sadly, I don't know how to handle a file of type `${rawFile.mimetype}`. Try again with a jpg, png, or gif."))
+            return Result.failure(
+                Exception(
+                    "That's a nice file you have, there.  Sadly, I don't know how to handle a file of type `${rawFile.mimetype}`. Try again with a jpg, png, or gif."
+                )
+            )
         }
         val emojiList = ctx.client().getAllEmoji()
         val isReplacement = (emojiname in emojiList)
 
         if (isReplacement && (emojiList[emojiname].equals(BUILT_IN))) {
             logger.info("Got a proposal for $emojiname which is a built-in emoji.")
-            return Result.failure(Exception("`:$emojiname:` is a built-in emoji, and there is no way to override that. Sorry, please choose another name."))
+            return Result.failure(
+                Exception("`:$emojiname:` is a built-in emoji, and there is no way to override that. Sorry, please choose another name.")
+            )
         }
 
         if (!slackNameRegex.matches(emojiname)) {
             logger.info("Got a proposal for $emojiname which has invalid characters.")
-            return Result.failure(Exception("`:$emojiname:` contains characters that Slack wont allow. Slack only allows letters, numbers, underscore, hyphen, and plus, please choose another name."))
+            return Result.failure(
+                Exception(
+                    "`:$emojiname:` contains characters that Slack wont allow. Slack only allows letters, numbers, underscore, hyphen, and plus, please choose another name."
+                )
+            )
         }
 
         val replaceWords = if (isReplacement) "to replace :$emojiname:" else ""
 
         // Step 1: Get upload URL from Slack
-        val uploadUrlResp = ctx.client().filesGetUploadURLExternal {
-            it.filename(
-                if (ImageHelp.isGif(previewBytes)) {
-                    "preview.$emojiname.$rawSha1.gif"
-                } else {
-                    "preview.$emojiname.$rawSha1.png"
-                }
-            )
-            it.length(previewBytes?.size)
-        }
+        val uploadUrlResp =
+            ctx.client().filesGetUploadURLExternal {
+                it.filename(
+                    if (ImageHelp.isGif(previewBytes)) {
+                        "preview.$emojiname.$rawSha1.gif"
+                    } else {
+                        "preview.$emojiname.$rawSha1.png"
+                    }
+                )
+                it.length(previewBytes?.size)
+            }
         if (!uploadUrlResp.isOk || uploadUrlResp.uploadUrl == null) {
             return Result.failure(Exception("Unable to get upload URL: ${uploadUrlResp.error}"))
         }
@@ -123,7 +153,8 @@ class EmojiService(private val config: Config, private val db: Db) {
             ctx.client().filesCompleteUploadExternal { req ->
                 req.files(
                     listOf(
-                        FilesCompleteUploadExternalRequest.FileDetails.builder()
+                        FilesCompleteUploadExternalRequest.FileDetails
+                            .builder()
                             .id(fileId) // <- from Step 1
                             .title("$emojiname preview")
                             .build()
@@ -148,69 +179,78 @@ class EmojiService(private val config: Config, private val db: Db) {
         logger.debug("previewFile: $previewFile")
         Thread.sleep(3000)
         // Get the message timestamp by finding the message that contains our preview file
-        val conversationHistory = ctx.client().conversationsHistory {
-            it.channel(config.slack.slackEmojiChannel)
-            it.limit(10) // Get recent messages to search through
-        }
-
-        val proposalTs = if (conversationHistory.isOk && conversationHistory.messages.isNotEmpty()) {
-            // Find the message that contains our preview file ID
-            val messageWithFile = conversationHistory.messages.find { message ->
-                message.files?.any { file -> file.id == previewFile.id } == true
+        val conversationHistory =
+            ctx.client().conversationsHistory {
+                it.channel(config.slack.slackEmojiChannel)
+                it.limit(10) // Get recent messages to search through
             }
-            messageWithFile?.ts
-        } else {
-            null
-        }
+
+        val proposalTs =
+            if (conversationHistory.isOk && conversationHistory.messages.isNotEmpty()) {
+                // Find the message that contains our preview file ID
+                val messageWithFile =
+                    conversationHistory.messages.find { message ->
+                        message.files?.any { file -> file.id == previewFile.id } == true
+                    }
+                messageWithFile?.ts
+            } else {
+                null
+            }
 
         if (proposalTs == null) {
-            logger.error("Could not find message containing preview file ${previewFile.id}. ConversationHistory ok: ${conversationHistory.isOk}, error: ${conversationHistory.error}")
+            logger.error(
+                "Could not find message containing preview file ${previewFile.id}. ConversationHistory ok: ${conversationHistory.isOk}, error: ${conversationHistory.error}"
+            )
             return Result.failure(Exception("Could not find the proposal message timestamp from Slack response."))
         }
 
         logger.debug("proposalTs: $proposalTs")
 
         // Get permalink for that message
-        val permalinkResp = ctx.client().chatGetPermalink {
-            it.channel(config.slack.slackEmojiChannel)
-            it.messageTs(proposalTs)
-        }
+        val permalinkResp =
+            ctx.client().chatGetPermalink {
+                it.channel(config.slack.slackEmojiChannel)
+                it.messageTs(proposalTs)
+            }
         if (!permalinkResp.isOk || permalinkResp.permalink == null) {
             return Result.failure(Exception("Unable to get permalink: ${permalinkResp.error}"))
         }
         val proposalLink = permalinkResp.permalink
         logger.debug("Got proposalLink: $proposalLink")
 
-        val prop = db.withTransaction {
-            val propFile = emojiFiles.upsert(
-                EmojiFile(
-                    sha1 = rawSha1,
-                    file = rawFileBytes,
-                    contentType = rawFile.mimetype,
-                )
-            )
-            val prop: Proposal = proposals.upsert(
-                Proposal(
-                    emoji = emojiname,
-                    thread = proposalTs.toString(),
-                    permalink = proposalLink,
-                    fileId = propFile.sha1,
-                    user = requester,
-                )
-            )
+        val prop =
+            db.withTransaction {
+                val propFile =
+                    emojiFiles.upsert(
+                        EmojiFile(
+                            sha1 = rawSha1,
+                            file = rawFileBytes,
+                            contentType = rawFile.mimetype,
+                        )
+                    )
+                val prop: Proposal =
+                    proposals.upsert(
+                        Proposal(
+                            emoji = emojiname,
+                            thread = proposalTs.toString(),
+                            permalink = proposalLink,
+                            fileId = propFile.sha1,
+                            user = requester,
+                        )
+                    )
 
-            auditLog.insert(
-                AuditEntry(
-                    actorId = requester,
-                    action = AuditLog.ACTION_PROPOSE_NEW,
-                    emoji = prop.emoji,
-                    proposalId = prop.id,
+                auditLog.insert(
+                    AuditEntry(
+                        actorId = requester,
+                        action = AuditLog.ACTION_PROPOSE_NEW,
+                        emoji = prop.emoji,
+                        proposalId = prop.id,
+                    )
                 )
-            )
 
-            logger.info("$requester proposed a new emoji $emojiname: ${prop.id}")
-            return@withTransaction prop
-        }
+                logger.info("$requester proposed a new emoji $emojiname: ${prop.id}")
+                return@withTransaction prop
+            }
 
         savePreview(previewFile, prop)
 
@@ -232,10 +272,11 @@ class EmojiService(private val config: Config, private val db: Db) {
         }
 
         // Modern Slack upload flow for original image
-        val origUploadUrlResp = ctx.client().filesGetUploadURLExternal {
-            it.filename(rawFile.name)
-            it.length(rawFileBytes?.size)
-        }
+        val origUploadUrlResp =
+            ctx.client().filesGetUploadURLExternal {
+                it.filename(rawFile.name)
+                it.length(rawFileBytes?.size)
+            }
         if (!origUploadUrlResp.isOk || origUploadUrlResp.uploadUrl == null) {
             return Result.failure(Exception("Unable to get upload URL for original image: ${origUploadUrlResp.error}"))
         }
@@ -263,7 +304,8 @@ class EmojiService(private val config: Config, private val db: Db) {
             ctx.client().filesCompleteUploadExternal { req ->
                 req.files(
                     listOf(
-                        FilesCompleteUploadExternalRequest.FileDetails.builder()
+                        FilesCompleteUploadExternalRequest.FileDetails
+                            .builder()
                             .id(origFileId) // from getUploadURLExternal
                             .title(emojiname)
                             .build()
@@ -289,12 +331,21 @@ class EmojiService(private val config: Config, private val db: Db) {
         return Result.success(prop)
     }
 
-    fun handleAliasFunction(ctx: Context, requester: String, emojiname: String, aliasname: String): Result<Proposal> {
+    fun handleAliasFunction(
+        ctx: Context,
+        requester: String,
+        emojiname: String,
+        aliasname: String
+    ): Result<Proposal> {
         val emojiList = ctx.client().getAllEmoji()
 
         if (!slackNameRegex.matches(aliasname)) {
             logger.info("Got a proposal for $aliasname which has invalid characters.")
-            return Result.failure(Exception("`:$aliasname:` contains characters that Slack wont allow. Slack only allows letters, numbers, underscore, hyphen, and plus, please choose another name."))
+            return Result.failure(
+                Exception(
+                    "`:$aliasname:` contains characters that Slack wont allow. Slack only allows letters, numbers, underscore, hyphen, and plus, please choose another name."
+                )
+            )
         }
 
         // First make sure emojiname is a live emoji, or built-in
@@ -304,10 +355,11 @@ class EmojiService(private val config: Config, private val db: Db) {
         }
 
         // post about it so we have a thread timestamp
-        val resp = ctx.client().chatPostMessage {
-            it.channel(config.slack.slackEmojiChannel)
-            it.text("New Alias Proposal: `:$aliasname:` for :$emojiname:(`:$emojiname:`) by <@$requester>")
-        }
+        val resp =
+            ctx.client().chatPostMessage {
+                it.channel(config.slack.slackEmojiChannel)
+                it.text("New Alias Proposal: `:$aliasname:` for :$emojiname:(`:$emojiname:`) by <@$requester>")
+            }
         if (!resp.isOk) {
             logger.warn("Tried to post a message, but failed: ${resp.error}")
             throw Exception("Tried to post a message, but failed: ${resp.error}")
@@ -321,26 +373,30 @@ class EmojiService(private val config: Config, private val db: Db) {
             buildProposalVotingRules("alias will be added")
         )
 
-        val link = ctx.client().chatGetPermalink {
-            it.channel(config.slack.slackEmojiChannel)
-            it.messageTs(ts)
-        }
+        val link =
+            ctx.client().chatGetPermalink {
+                it.channel(config.slack.slackEmojiChannel)
+                it.messageTs(ts)
+            }
 
         if (!link.isOk) {
             logger.warn("Unable to get permalink to conversation: ${link.error}")
-            return Result.failure(Exception("Unable to obtain a link to the conversation. Please try again or contact an administrator for assistance."))
+            return Result.failure(
+                Exception("Unable to obtain a link to the conversation. Please try again or contact an administrator for assistance.")
+            )
         }
 
-        val prop = proposals.upsert(
-            Proposal(
-                alias = true,
-                emoji = aliasname,
-                cname = emojiname,
-                user = requester,
-                thread = ts,
-                permalink = link.permalink,
+        val prop =
+            proposals.upsert(
+                Proposal(
+                    alias = true,
+                    emoji = aliasname,
+                    cname = emojiname,
+                    user = requester,
+                    thread = ts,
+                    permalink = link.permalink,
+                )
             )
-        )
 
         auditLog.insert(
             AuditEntry(
@@ -355,7 +411,11 @@ class EmojiService(private val config: Config, private val db: Db) {
         return Result.success(prop)
     }
 
-    fun handleRemoveFunction(ctx: Context, requester: String, emojiname: String): Result<Proposal> {
+    fun handleRemoveFunction(
+        ctx: Context,
+        requester: String,
+        emojiname: String
+    ): Result<Proposal> {
         val emojiList = ctx.client().getAllEmoji()
 
         // Can we remove it?
@@ -376,10 +436,11 @@ class EmojiService(private val config: Config, private val db: Db) {
             msg =
                 "Alias Deletion Proposal: Remove the alias `:$emojiname:` :$emojiname: for `:${emojiList[emojiname]}:` by <@$requester>"
         }
-        val resp = ctx.client().chatPostMessage {
-            it.channel(config.slack.slackEmojiChannel)
-            it.text(msg)
-        }
+        val resp =
+            ctx.client().chatPostMessage {
+                it.channel(config.slack.slackEmojiChannel)
+                it.text(msg)
+            }
         if (!resp.isOk) {
             return Result.failure(Exception("Tried to post a message, but it failed: ${resp.error}"))
         }
@@ -392,25 +453,29 @@ class EmojiService(private val config: Config, private val db: Db) {
             buildProposalVotingRules("${if (isAlias) "alias" else "emoji"} will be deleted")
         )
 
-        val link = ctx.client().chatGetPermalink {
-            it.channel(config.slack.slackEmojiChannel)
-            it.messageTs(ts)
-        }
+        val link =
+            ctx.client().chatGetPermalink {
+                it.channel(config.slack.slackEmojiChannel)
+                it.messageTs(ts)
+            }
 
         if (!link.isOk) {
             logger.warn("Unable to get permalink to conversation: ${link.error}")
-            return Result.failure(Exception("Unable to obtain a link to the conversation. Please try again or contact an administrator for assistance."))
+            return Result.failure(
+                Exception("Unable to obtain a link to the conversation. Please try again or contact an administrator for assistance.")
+            )
         }
 
-        val prop = proposals.upsert(
-            Proposal(
-                emoji = emojiname,
-                action = Proposals.ACTION_REMOVE,
-                user = requester,
-                thread = ts,
-                permalink = link.permalink,
+        val prop =
+            proposals.upsert(
+                Proposal(
+                    emoji = emojiname,
+                    action = Proposals.ACTION_REMOVE,
+                    user = requester,
+                    thread = ts,
+                    permalink = link.permalink,
+                )
             )
-        )
 
         auditLog.insert(
             AuditEntry(
@@ -425,7 +490,12 @@ class EmojiService(private val config: Config, private val db: Db) {
         return Result.success(prop)
     }
 
-    fun recordVote(ctx: Context, ts: String, user: String, action: String): Boolean {
+    fun recordVote(
+        ctx: Context,
+        ts: String,
+        user: String,
+        action: String
+    ): Boolean {
         var valid = false
         db.withTransaction {
             // Find the proposal
@@ -445,11 +515,12 @@ class EmojiService(private val config: Config, private val db: Db) {
                 // Should we report this to the admins?
                 if (tallyResult.systemReport == 0 && tallyResult.down >= config.votes.downVoteThreshold) {
                     logger.info("Proposal ${prop.id} has ${tallyResult.down} downvotes. Attempting to flag.")
-                    val r = ctx.client().reactionsAdd() {
-                        it.channel(config.slack.slackEmojiChannel)
-                        it.timestamp(ts)
-                        it.name(Proposals.REPORT)
-                    }
+                    val r =
+                        ctx.client().reactionsAdd {
+                            it.channel(config.slack.slackEmojiChannel)
+                            it.timestamp(ts)
+                            it.name(Proposals.REPORT)
+                        }
 
                     if (r.isOk) {
                         recordVote(ctx, ts, user, AuditLog.ACTION_SYSTEM_REPORT)
@@ -457,21 +528,28 @@ class EmojiService(private val config: Config, private val db: Db) {
                         if (config.slack.slackEmojiAdminChannel.isNotEmpty()) {
                             logger.warn("${prop.id} has ${config.votes.downVoteThreshold} downvotes. Notifying admins.")
 
-                            var body = when (prop.action) {
-                                Proposals.ACTION_ADD ->
-                                    ":heavy_plus_sign:`:${prop.emoji}:` "
-                                Proposals.ACTION_REMOVE ->
-                                    ":heavy_minus_sign:`:${prop.emoji}:` "
-                                else ->
-                                    ""
-                            }
+                            var body =
+                                when (prop.action) {
+                                    Proposals.ACTION_ADD -> {
+                                        ":heavy_plus_sign:`:${prop.emoji}:` "
+                                    }
+
+                                    Proposals.ACTION_REMOVE -> {
+                                        ":heavy_minus_sign:`:${prop.emoji}:` "
+                                    }
+
+                                    else -> {
+                                        ""
+                                    }
+                                }
 
                             if (prop.alias) body += "(alias for `:${prop.cname}:` :${prop.cname}:) "
 
                             body += "<${prop.permalink}|Thread> "
                             if (tallyResult.block - tallyResult.unblock > 0) body += ":${Proposals.BLOCK}: "
 
-                            body += "${tallyResult.up}:${Proposals.UPVOTE}: ${tallyResult.down}:${Proposals.DOWNVOTE}: net: ${tallyResult.up - tallyResult.down}"
+                            body +=
+                                "${tallyResult.up}:${Proposals.UPVOTE}: ${tallyResult.down}:${Proposals.DOWNVOTE}: net: ${tallyResult.up - tallyResult.down}"
                             if (tallyResult.up - tallyResult.down > config.votes.winBy) body += ":+1: "
 
                             postAdminChannelMessage("Auto reporting $body")
@@ -488,7 +566,10 @@ class EmojiService(private val config: Config, private val db: Db) {
         return valid
     }
 
-    fun withdrawProposal(ctx: Context, ts: String) {
+    fun withdrawProposal(
+        ctx: Context,
+        ts: String
+    ) {
         db.withTransaction {
             val prop = proposals.findByThread(ts)
             if (prop != null) {
@@ -499,7 +580,10 @@ class EmojiService(private val config: Config, private val db: Db) {
         }
     }
 
-    fun createAlias(adminClient: AsyncMethodsClient, prop: Proposal): ActionResult {
+    fun createAlias(
+        adminClient: AsyncMethodsClient,
+        prop: Proposal
+    ): ActionResult {
         var success = false
         var error: String? = null
         if (!prop.alias || prop.cname == null) {
@@ -508,29 +592,33 @@ class EmojiService(private val config: Config, private val db: Db) {
         }
         db.withTransaction {
             removeSpecificEmoji(adminClient, prop.emoji, prop)
-            val emoji = emojis.upsert(
-                Emoji(
-                    name = prop.emoji,
-                    proposalId = prop.id,
-                    alias = prop.alias,
-                    cname = prop.cname,
+            val emoji =
+                emojis.upsert(
+                    Emoji(
+                        name = prop.emoji,
+                        proposalId = prop.id,
+                        alias = prop.alias,
+                        cname = prop.cname,
+                    )
                 )
-            )
 
             prop.state = Proposals.STATE_ACCEPTED
             proposals.upsert(prop)
 
-            val audit = AuditEntry(
-                emoji = emoji.name,
-                proposalId = prop.id,
-                actorId = AuditLog.ACTOR_ID_SYSTEM,
-                action = AuditLog.ACTION_SYSTEM_UPLOAD,
-            )
+            val audit =
+                AuditEntry(
+                    emoji = emoji.name,
+                    proposalId = prop.id,
+                    actorId = AuditLog.ACTOR_ID_SYSTEM,
+                    action = AuditLog.ACTION_SYSTEM_UPLOAD,
+                )
 
-            val r = adminClient.adminEmojiAddAlias {
-                it.name(prop.emoji)
-                it.aliasFor(prop.cname)
-            }.get()
+            val r =
+                adminClient
+                    .adminEmojiAddAlias {
+                        it.name(prop.emoji)
+                        it.aliasFor(prop.cname)
+                    }.get()
 
             if (r.isOk) {
                 success = true
@@ -542,14 +630,19 @@ class EmojiService(private val config: Config, private val db: Db) {
                 audit.action = AuditLog.ACTION_SYSTEM_FAIL
                 audit.note = "Failed to create alias. Slack response: ${r.error}"
                 error = r.error
-                postAdminChannelMessage(":warning: Failed to create alias ${prop.emoji} in Slack. Proposal: <${prop.permalink}|${prop.id}> Error: ${r.error}")
+                postAdminChannelMessage(
+                    ":warning: Failed to create alias ${prop.emoji} in Slack. Proposal: <${prop.permalink}|${prop.id}> Error: ${r.error}"
+                )
             }
             auditLog.insert(audit)
         }
         return ActionResult(success, error)
     }
 
-    fun uploadEmoji(adminClient: AsyncMethodsClient, prop: Proposal): ActionResult {
+    fun uploadEmoji(
+        adminClient: AsyncMethodsClient,
+        prop: Proposal
+    ): ActionResult {
         var success = false
         var error: String? = null
 
@@ -559,32 +652,38 @@ class EmojiService(private val config: Config, private val db: Db) {
         }
         db.withTransaction {
             removeSpecificEmoji(adminClient, prop.emoji, prop)
-            val emoji = emojis.upsert(
-                Emoji(
-                    name = prop.emoji,
-                    proposalId = prop.id,
-                    file = prop.fileId,
-                    alias = prop.alias,
-                    cname = prop.cname,
+            val emoji =
+                emojis.upsert(
+                    Emoji(
+                        name = prop.emoji,
+                        proposalId = prop.id,
+                        file = prop.fileId,
+                        alias = prop.alias,
+                        cname = prop.cname,
+                    )
                 )
-            )
 
             prop.state = Proposals.STATE_ACCEPTED
             proposals.upsert(prop)
 
-            val audit = AuditEntry(
-                emoji = emoji.name,
-                proposalId = prop.id,
-                actorId = AuditLog.ACTOR_ID_SYSTEM,
-                action = AuditLog.ACTION_SYSTEM_UPLOAD,
+            val audit =
+                AuditEntry(
+                    emoji = emoji.name,
+                    proposalId = prop.id,
+                    actorId = AuditLog.ACTOR_ID_SYSTEM,
+                    action = AuditLog.ACTION_SYSTEM_UPLOAD,
+                )
+
+            logger.warn(
+                "Attempting to upload emoji: ${prop.emoji} using url ${config.server.urlPrefix}${config.server.urlPath}_images_${prop.fileId!!}"
             )
 
-            logger.warn("Attempting to upload emoji: ${prop.emoji} using url ${config.server.urlPrefix}${config.server.urlPath}_images_${prop.fileId!!}")
-
-            val r = adminClient.adminEmojiAdd {
-                it.name(prop.emoji)
-                it.url("${config.server.urlPrefix}${config.server.urlPath}_images_${prop.fileId!!}")
-            }.get()
+            val r =
+                adminClient
+                    .adminEmojiAdd {
+                        it.name(prop.emoji)
+                        it.url("${config.server.urlPrefix}${config.server.urlPath}_images_${prop.fileId!!}")
+                    }.get()
 
             if (r.isOk) {
                 success = true
@@ -597,14 +696,19 @@ class EmojiService(private val config: Config, private val db: Db) {
                 audit.note = "Failed to upload emoji. Slack response: ${r.error}"
 
                 error = r.error
-                postAdminChannelMessage(":warning: Failed to upload ${prop.emoji} to Slack. Proposal: <${prop.permalink}|${prop.id}> Error: ${r.error}")
+                postAdminChannelMessage(
+                    ":warning: Failed to upload ${prop.emoji} to Slack. Proposal: <${prop.permalink}|${prop.id}> Error: ${r.error}"
+                )
             }
             auditLog.insert(audit)
         }
         return ActionResult(success, error)
     }
 
-    fun removeEmoji(adminClient: AsyncMethodsClient, prop: Proposal): ActionResult {
+    fun removeEmoji(
+        adminClient: AsyncMethodsClient,
+        prop: Proposal
+    ): ActionResult {
         val r = removeSpecificEmoji(adminClient, prop.emoji, prop)
         if (r.ok) {
             prop.state = Proposals.STATE_ACCEPTED
@@ -620,7 +724,11 @@ class EmojiService(private val config: Config, private val db: Db) {
        emoji is not the one we are deleting.  This is used when updating an
        existing emoji, as well as when deleting an emoji directly.
      */
-    private fun removeSpecificEmoji(adminClient: AsyncMethodsClient, name: String, prop: Proposal): ActionResult {
+    private fun removeSpecificEmoji(
+        adminClient: AsyncMethodsClient,
+        name: String,
+        prop: Proposal
+    ): ActionResult {
         var success = false
         var error: String? = null
 
@@ -628,17 +736,19 @@ class EmojiService(private val config: Config, private val db: Db) {
         if (emoji != null) {
             emojis.removeEmojiByName(name)
         }
-        val audit = AuditEntry(
-            emoji = emoji?.name,
-            proposalId = prop.id,
-            actorId = AuditLog.ACTOR_ID_SYSTEM,
-            action = AuditLog.ACTION_SYSTEM_DELETE,
+        val audit =
+            AuditEntry(
+                emoji = emoji?.name,
+                proposalId = prop.id,
+                actorId = AuditLog.ACTOR_ID_SYSTEM,
+                action = AuditLog.ACTION_SYSTEM_DELETE,
+            )
 
-        )
-
-        val r = adminClient.adminEmojiRemove {
-            it.name(name)
-        }.get()
+        val r =
+            adminClient
+                .adminEmojiRemove {
+                    it.name(name)
+                }.get()
 
         if (r.isOk) {
             success = true
@@ -650,7 +760,9 @@ class EmojiService(private val config: Config, private val db: Db) {
                 audit.action = AuditLog.ACTION_SYSTEM_FAIL
                 audit.note = "Failed to remove emoji. Slack response: ${r.error}"
                 error = r.error
-                postAdminChannelMessage(":warning: Failed to remove $name from Slack. Proposal: <${prop.permalink}|${prop.id}> Error: ${r.error}")
+                postAdminChannelMessage(
+                    ":warning: Failed to remove $name from Slack. Proposal: <${prop.permalink}|${prop.id}> Error: ${r.error}"
+                )
             }
         }
 
@@ -658,7 +770,10 @@ class EmojiService(private val config: Config, private val db: Db) {
         return ActionResult(success, error)
     }
 
-    private fun performAction(adminClient: AsyncMethodsClient, prop: Proposal): ActionResult {
+    private fun performAction(
+        adminClient: AsyncMethodsClient,
+        prop: Proposal
+    ): ActionResult {
         if (prop.action == Proposals.ACTION_ADD) {
             if (prop.alias) {
                 return createAlias(adminClient, prop)
@@ -672,7 +787,10 @@ class EmojiService(private val config: Config, private val db: Db) {
         return ActionResult(false, "Unknown action in proposal")
     }
 
-    private fun savePreview(file: File, prop: Proposal) {
+    private fun savePreview(
+        file: File,
+        prop: Proposal
+    ) {
         prop.previewFile = file.id
         prop.previewUrl = file.thumb64
         proposals.upsert(prop)
@@ -701,7 +819,9 @@ class EmojiService(private val config: Config, private val db: Db) {
             if (tallyResult.block - tallyResult.unblock > 0) {
                 logger.info("${prop.id} is blocked and will not tally.")
             } else {
-                logger.warn("${prop.id} has ${tallyResult.up} upvotes and ${tallyResult.down} downvotes. Net: ${tallyResult.up - tallyResult.down} WinBy: ${config.votes.winBy}")
+                logger.warn(
+                    "${prop.id} has ${tallyResult.up} upvotes and ${tallyResult.down} downvotes. Net: ${tallyResult.up - tallyResult.down} WinBy: ${config.votes.winBy}"
+                )
                 if (tallyResult.up - tallyResult.down > config.votes.winBy) {
                     // We have enough votes to pass
                     val action = if (prop.action == Proposals.ACTION_ADD) "added" else "removed"
@@ -724,7 +844,9 @@ class EmojiService(private val config: Config, private val db: Db) {
                     } else {
                         client.chatPostMessage { p ->
                             p.channel(config.slack.slackEmojiChannel)
-                            p.text("Oh no! Something went wrong. Please have an admin. look into this.\nProposal id ${prop.id}\nError: `${a.error}`")
+                            p.text(
+                                "Oh no! Something went wrong. Please have an admin. look into this.\nProposal id ${prop.id}\nError: `${a.error}`"
+                            )
                             p.threadTs(prop.thread)
                         }
                     }
@@ -786,17 +908,21 @@ class EmojiService(private val config: Config, private val db: Db) {
 
     Usage example: buildProposalVotingRules("this bot will self-destruct")
      */
-    private fun buildProposalVotingRules(outcomeIfApproved: String): String {
-        return "Vote with :${Proposals.UPVOTE}: or :${Proposals.DOWNVOTE}:\n" +
+    private fun buildProposalVotingRules(outcomeIfApproved: String): String =
+        "Vote with :${Proposals.UPVOTE}: or :${Proposals.DOWNVOTE}:\n" +
             "After ${config.votes.commentPeriod} business day${if (config.votes.commentPeriod > 1) "s" else ""}, " +
             "if there are at least ${config.votes.winBy + 1} more " +
             ":${Proposals.UPVOTE}: than :${Proposals.DOWNVOTE}: votes, the $outcomeIfApproved. " +
             "Voting will close after ${config.votes.maxDuration} business days otherwise.\n\n" +
             "Please provide some context in the thread: " +
             "What is this image? Where did it come from? How do you expect it to be used?"
-    }
 
-    private fun postProposal(ctx: Context, channel: String, ts: String, message: String) {
+    private fun postProposal(
+        ctx: Context,
+        channel: String,
+        ts: String,
+        message: String
+    ) {
         ctx.client().chatPostMessage {
             it.channel(channel)
             it.text(message)
@@ -814,7 +940,10 @@ class EmojiService(private val config: Config, private val db: Db) {
         }
     }
 
-    fun adminUpdateProposal(proposal: Proposal, actor: String): Proposal {
+    fun adminUpdateProposal(
+        proposal: Proposal,
+        actor: String
+    ): Proposal {
         return db.withTransaction {
             auditLog.insert(
                 AuditEntry(
@@ -828,33 +957,28 @@ class EmojiService(private val config: Config, private val db: Db) {
         }
     }
 
-    fun findEmojiByName(name: String): Emoji? {
-        return emojis.findEmojiByName(name)
-    }
+    fun findEmojiByName(name: String): Emoji? = emojis.findEmojiByName(name)
 
-    fun findProposalByThread(timestamp: String): Proposal? {
-        return proposals.findByThread(timestamp)
-    }
+    fun findProposalByThread(timestamp: String): Proposal? = proposals.findByThread(timestamp)
 
-    fun findProposalById(id: UUID): Proposal? {
-        return proposals.findProposalByID(id)
-    }
+    fun findProposalById(id: UUID): Proposal? = proposals.findProposalByID(id)
 
-    fun findProposalsByState(state: String, limit: Int? = null): List<Proposal> {
-        return proposals.findAllByState(state, limit)
-    }
+    fun findProposalsByState(
+        state: String,
+        limit: Int? = null
+    ): List<Proposal> = proposals.findAllByState(state, limit)
 
-    fun getRecentlyAdded(days: Long = 14, limit: Int = 32): List<Pair<Proposal, LocalDateTime>> {
-        return proposals.getRecentlyAdded(days, limit)
-    }
+    fun getRecentlyAdded(
+        days: Long = 14,
+        limit: Int = 32
+    ): List<Pair<Proposal, LocalDateTime>> = proposals.getRecentlyAdded(days, limit)
 
-    fun getRecentErrors(days: Long = 14, limit: Int = 32): List<Pair<Proposal, AuditEntry>> {
-        return proposals.getRecentErrors(days, limit)
-    }
+    fun getRecentErrors(
+        days: Long = 14,
+        limit: Int = 32
+    ): List<Pair<Proposal, AuditEntry>> = proposals.getRecentErrors(days, limit)
 
-    fun userIsAdmin(user: String): Boolean {
-        return (user in config.slack.slackAdminUsers)
-    }
+    fun userIsAdmin(user: String): Boolean = (user in config.slack.slackAdminUsers)
 
     fun postAdminChannelMessage(message: String) {
         val client = Slack.getInstance().methods(config.slack.slackBotToken.value)

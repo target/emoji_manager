@@ -6,13 +6,13 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 class TestVoting {
-
-    private val calendarHolidays: List<LocalDate> = listOf(
-        LocalDate.of(2021, 7, 5), // Independence Day (US)
-        LocalDate.of(2021, 7, 14), // Made Up Holiday (None)
-        LocalDate.of(2021, 7, 29), // Made Up Holiday (None)
-        LocalDate.of(2021, 11, 25), // Thanksgiving (US)
-    )
+    private val calendarHolidays: List<LocalDate> =
+        listOf(
+            LocalDate.of(2021, 7, 5), // Independence Day (US)
+            LocalDate.of(2021, 7, 14), // Made Up Holiday (None)
+            LocalDate.of(2021, 7, 29), // Made Up Holiday (None)
+            LocalDate.of(2021, 11, 25), // Thanksgiving (US)
+        )
 
     @Test
     fun testWeekend() {

@@ -31,13 +31,12 @@ const val WARN_EMOJI_FILE_SIZE = 256
 const val MAX_ASPECT_RATIO = 2.0
 const val MAX_FRAME_COUNT = 50
 
-fun ImmutableImage.aspectRatio(): Long {
-    return if (width > height) {
+fun ImmutableImage.aspectRatio(): Long =
+    if (width > height) {
         width.toLong() / height.toLong()
     } else {
         height.toLong() / width.toLong()
     }
-}
 
 // Yes, this is from StackOverflow:
 // https://stackoverflow.com/questions/3758606/how-can-i-convert-byte-size-into-a-human-readable-format-in-java
@@ -54,12 +53,14 @@ fun humanReadableByteCountBin(bytes: Long): String {
         ci.next()
         i -= 10
     }
-    value *= java.lang.Long.signum(bytes).toLong()
+    value *=
+        java.lang.Long
+            .signum(bytes)
+            .toLong()
     return String.format("%.1f %cB", value / 1024.0, ci.current())
 }
 
 object ImageHelp {
-
     private val lightBackground = RGBColor(255, 255, 255).toAWT()
     private val darkBackground = RGBColor(27, 29, 33).toAWT()
 
@@ -71,23 +72,19 @@ object ImageHelp {
             .orElse(false)
     }
 
-    private fun extractGif(bytes: ByteArray): Optional<AnimatedGif> {
-        return if (!isGif(bytes)) {
+    private fun extractGif(bytes: ByteArray): Optional<AnimatedGif> =
+        if (!isGif(bytes)) {
             Optional.empty()
         } else {
             Optional.of(AnimatedGifReader.read(ImageSource.of(bytes)))
         }
-    }
 
-    private fun isAnimated(gif: AnimatedGif): Boolean {
-        return gif.frameCount > 1
-    }
+    private fun isAnimated(gif: AnimatedGif): Boolean = gif.frameCount > 1
 
-    fun isAnimatedGif(bytes: ByteArray): Boolean {
-        return extractGif(bytes)
+    fun isAnimatedGif(bytes: ByteArray): Boolean =
+        extractGif(bytes)
             .map { g -> isAnimated(g) }
             .orElse(false)
-    }
 
     fun checkSize(emojiFile: ByteArray): MutableList<String> {
         with(mutableListOf<String>()) {
@@ -101,17 +98,20 @@ object ImageHelp {
                     add("Slack emoji look best when mostly square, consider adjusting the aspect ratio.")
                 }
                 if (width > MAX_EMOJI_IMAGE_SIZE || height > MAX_EMOJI_IMAGE_SIZE) {
-                    val emojiSm = run {
-                        if (height > width) {
-                            scaleToHeight(MAX_EMOJI_IMAGE_SIZE, ScaleMethod.Lanczos3)
-                        } else {
-                            scaleToWidth(MAX_EMOJI_IMAGE_SIZE, ScaleMethod.Lanczos3)
+                    val emojiSm =
+                        run {
+                            if (height > width) {
+                                scaleToHeight(MAX_EMOJI_IMAGE_SIZE, ScaleMethod.Lanczos3)
+                            } else {
+                                scaleToWidth(MAX_EMOJI_IMAGE_SIZE, ScaleMethod.Lanczos3)
+                            }
                         }
-                    }
                     val resizedSize = emojiSm.bytes(PngWriter()).size
                     if (resizedSize > MAX_EMOJI_FILE_SIZE * KILOBTYE) {
                         val size = humanReadableByteCountBin(resizedSize.toLong())
-                        add("The image file size is larger than $MAX_EMOJI_FILE_SIZE KB ($size) when scaled to ${MAX_EMOJI_IMAGE_SIZE}x$MAX_EMOJI_IMAGE_SIZE, Slack will reject it.")
+                        add(
+                            "The image file size is larger than $MAX_EMOJI_FILE_SIZE KB ($size) when scaled to ${MAX_EMOJI_IMAGE_SIZE}x$MAX_EMOJI_IMAGE_SIZE, Slack will reject it."
+                        )
                     }
                 }
             }
@@ -145,26 +145,53 @@ object ImageHelp {
     }
 
     private fun generatePreviewFrame(srcImage: ImmutableImage): ImmutableImage {
-        val emoji = srcImage.run {
-            if (height > width) {
-                scaleToHeight(MIN_EMOJI_IMAGE_SIZE, ScaleMethod.Lanczos3)
-            } else {
-                scaleToWidth(MIN_EMOJI_IMAGE_SIZE, ScaleMethod.Lanczos3)
+        val emoji =
+            srcImage.run {
+                if (height > width) {
+                    scaleToHeight(MIN_EMOJI_IMAGE_SIZE, ScaleMethod.Lanczos3)
+                } else {
+                    scaleToWidth(MIN_EMOJI_IMAGE_SIZE, ScaleMethod.Lanczos3)
+                }
             }
-        }
-        val emojiSm = srcImage.run {
-            if (height > width) {
-                scaleToHeight(SM_EMOJI_IMAGE_SIZE, ScaleMethod.Lanczos3)
-            } else {
-                scaleToWidth(SM_EMOJI_IMAGE_SIZE, ScaleMethod.Lanczos3)
+        val emojiSm =
+            srcImage.run {
+                if (height > width) {
+                    scaleToHeight(SM_EMOJI_IMAGE_SIZE, ScaleMethod.Lanczos3)
+                } else {
+                    scaleToWidth(SM_EMOJI_IMAGE_SIZE, ScaleMethod.Lanczos3)
+                }
             }
-        }
-        val emojiLight = ImmutableImage.create(PREVIEW_EMOJI_IMAGE_SIZE, PREVIEW_EMOJI_IMAGE_SIZE).fill(lightBackground).overlay(emoji, Position.Center)
-        val emojiDark = ImmutableImage.create(PREVIEW_EMOJI_IMAGE_SIZE, PREVIEW_EMOJI_IMAGE_SIZE).fill(darkBackground).overlay(emoji, Position.Center)
-        val emojiLightSm = ImmutableImage.create(PREVIEW_EMOJI_IMAGE_SIZE, PREVIEW_EMOJI_IMAGE_SIZE).fill(lightBackground).overlay(emojiSm, Position.Center)
-        val emojiDarkSm = ImmutableImage.create(PREVIEW_EMOJI_IMAGE_SIZE, PREVIEW_EMOJI_IMAGE_SIZE).fill(darkBackground).overlay(emojiSm, Position.Center)
+        val emojiLight =
+            ImmutableImage
+                .create(
+                    PREVIEW_EMOJI_IMAGE_SIZE,
+                    PREVIEW_EMOJI_IMAGE_SIZE
+                ).fill(lightBackground)
+                .overlay(emoji, Position.Center)
+        val emojiDark =
+            ImmutableImage
+                .create(
+                    PREVIEW_EMOJI_IMAGE_SIZE,
+                    PREVIEW_EMOJI_IMAGE_SIZE
+                ).fill(darkBackground)
+                .overlay(emoji, Position.Center)
+        val emojiLightSm =
+            ImmutableImage
+                .create(
+                    PREVIEW_EMOJI_IMAGE_SIZE,
+                    PREVIEW_EMOJI_IMAGE_SIZE
+                ).fill(lightBackground)
+                .overlay(emojiSm, Position.Center)
+        val emojiDarkSm =
+            ImmutableImage
+                .create(
+                    PREVIEW_EMOJI_IMAGE_SIZE,
+                    PREVIEW_EMOJI_IMAGE_SIZE
+                ).fill(darkBackground)
+                .overlay(emojiSm, Position.Center)
         val emojiImageSize = PREVIEW_EMOJI_IMAGE_SIZE * 2
-        return ImmutableImage.create(emojiImageSize, emojiImageSize)
+        return ImmutableImage
+            .create(emojiImageSize, emojiImageSize)
             .overlay(emojiLight, 0, 0)
             .overlay(emojiDark, PREVIEW_EMOJI_IMAGE_SIZE, 0)
             .overlay(emojiLightSm, 0, PREVIEW_EMOJI_IMAGE_SIZE)

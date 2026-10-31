@@ -16,10 +16,17 @@ const val BUILT_IN = "built-in"
 // Slack emoji name rule, a best we can discover
 val slackNameRegex = "^[-+_a-z0-9]+$".toRegex()
 
-data class ActionResult(val ok: Boolean, val error: String?)
+data class ActionResult(
+    val ok: Boolean,
+    val error: String?
+)
+
 fun LocalDateTime.isWeekend(): Boolean = (dayOfWeek === DayOfWeek.SATURDAY || dayOfWeek === DayOfWeek.SUNDAY)
 
-fun LocalDateTime.plusBusinessDays(days: Long, calendarHolidays: List<LocalDate> = listOf()): LocalDateTime {
+fun LocalDateTime.plusBusinessDays(
+    days: Long,
+    calendarHolidays: List<LocalDate> = listOf()
+): LocalDateTime {
     var daysLeft = days
     var result: LocalDateTime = this
     while (daysLeft > 0) {
@@ -31,11 +38,15 @@ fun LocalDateTime.plusBusinessDays(days: Long, calendarHolidays: List<LocalDate>
     return result
 }
 
-fun hashString(type: String, input: ByteArray): String {
+fun hashString(
+    type: String,
+    input: ByteArray
+): String {
     val hexChars = "0123456789ABCDEF"
-    val bytes = MessageDigest
-        .getInstance(type)
-        .digest(input)
+    val bytes =
+        MessageDigest
+            .getInstance(type)
+            .digest(input)
     val result = StringBuilder(bytes.size * 2)
 
     bytes.forEach {
@@ -152,19 +163,25 @@ fun dbConfigFromUrl(dbConfig: DbConfig): DbConfig {
     )
 }
 
-private val typeMapping = mutableMapOf(
-    "jdbc:h2" to DbType.H2_FILE,
-    "jdbc:h2:file" to DbType.H2_FILE,
-    "jdbc:h2:mem" to DbType.H2_INMEM,
-    "jdbc:postgresql" to DbType.POSTGRES,
-    "jdbc:pgsql" to DbType.POSTGRES,
-)
+private val typeMapping =
+    mutableMapOf(
+        "jdbc:h2" to DbType.H2_FILE,
+        "jdbc:h2:file" to DbType.H2_FILE,
+        "jdbc:h2:mem" to DbType.H2_INMEM,
+        "jdbc:postgresql" to DbType.POSTGRES,
+        "jdbc:pgsql" to DbType.POSTGRES,
+    )
 
-private fun getJdbcType(url: String) = typeMapping.entries.firstOrNull { (prefix, _) ->
-    url.startsWith(prefix)
-}?.value ?: error("Database driver not found for $url")
+private fun getJdbcType(url: String) =
+    typeMapping.entries
+        .firstOrNull { (prefix, _) ->
+            url.startsWith(prefix)
+        }?.value ?: error("Database driver not found for $url")
 
-fun downloadFile(url: String, ctx: Context): ByteArray {
+fun downloadFile(
+    url: String,
+    ctx: Context
+): ByteArray {
     val client = ctx.slack.httpClient
     val resp = client.get(url, null, ctx.botToken)
     if (resp.isSuccessful) {
@@ -173,7 +190,11 @@ fun downloadFile(url: String, ctx: Context): ByteArray {
     throw Exception("Failed to download file: ${resp.code} ${resp.body}")
 }
 
-fun isNameOk(name: String, mimetype: String, emojiList: Map<String, String>): Result<Boolean> {
+fun isNameOk(
+    name: String,
+    mimetype: String,
+    emojiList: Map<String, String>
+): Result<Boolean> {
     // When a user pastes an image from the clipboard, it's named `image.png` . To avoid too many
     // accidentally wrongly named emoji, lets just not support it.
     if (name == "image") {
@@ -183,17 +204,27 @@ fun isNameOk(name: String, mimetype: String, emojiList: Map<String, String>): Re
     // Make sure we can actually handle this file
     // Does "image/apng" work? What about "image/webp"?
     if (mimetype !in arrayListOf("image/png", "image/jpg", "image/jpeg", "image/gif")) {
-        return Result.failure(Exception("That's a nice file you have, there.  Sadly, I don't know how to handle a file of type `$mimetype`. Try again with a jpg, png, or gif."))
+        return Result.failure(
+            Exception(
+                "That's a nice file you have, there.  Sadly, I don't know how to handle a file of type `$mimetype`. Try again with a jpg, png, or gif."
+            )
+        )
     }
 
     if (!slackNameRegex.matches(name)) {
-        return Result.failure(Exception("`:$name:` contains characters that Slack wont allow. Slack only allows letters, numbers, underscore, hyphen, and plus, please choose another name."))
+        return Result.failure(
+            Exception(
+                "`:$name:` contains characters that Slack wont allow. Slack only allows letters, numbers, underscore, hyphen, and plus, please choose another name."
+            )
+        )
     }
 
     val isReplacement = (name in emojiList)
 
     if (isReplacement && (emojiList[name].equals(BUILT_IN))) {
-        return Result.failure(Exception("`:$name:` is a built-in emoji, and there is no way to override that. Sorry, please choose another name."))
+        return Result.failure(
+            Exception("`:$name:` is a built-in emoji, and there is no way to override that. Sorry, please choose another name.")
+        )
     }
 
     return Result.success(true)

@@ -19,8 +19,10 @@ import com.slack.api.model.view.Views.viewTitle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-class MessageHandler(private val config: Config, private val emojiService: EmojiService) {
-
+class MessageHandler(
+    private val config: Config,
+    private val emojiService: EmojiService
+) {
     companion object {
         const val PROPOSE_BUTTON = "emoji_propose_btn"
         const val SENDIT_FORM = "sendit_frm"
@@ -28,7 +30,10 @@ class MessageHandler(private val config: Config, private val emojiService: Emoji
 
     private var logger: Logger = LoggerFactory.getLogger(MessageHandler::class.java)
 
-    fun handleMessage(event: MessageFileShareEvent, ctx: EventContext) {
+    fun handleMessage(
+        event: MessageFileShareEvent,
+        ctx: EventContext
+    ) {
         if (event.threadTs != null && event.ts != event.threadTs) {
             // ignore in-thread messages
             return
@@ -51,20 +56,25 @@ class MessageHandler(private val config: Config, private val emojiService: Emoji
             }
         } else {
             if (event.channel in config.slack.slackHintChannels) {
-                val link = ctx.client().chatGetPermalink { l ->
-                    l.channel(event.channel)
-                    l.messageTs(event.ts)
-                }
+                val link =
+                    ctx.client().chatGetPermalink { l ->
+                        l.channel(event.channel)
+                        l.messageTs(event.ts)
+                    }
                 if (link.isOk) {
                     ctx.client().chatPostMessage { p ->
                         p.channel(event.user)
                         p.unfurlLinks(true)
-                        p.text("Hi there! I saw you posted an image to <${link.permalink}>.\nI no longer accept emoji proposals there. Instead, post your image here to propose a new emoji!")
+                        p.text(
+                            "Hi there! I saw you posted an image to <${link.permalink}>.\nI no longer accept emoji proposals there. Instead, post your image here to propose a new emoji!"
+                        )
                     }
                     ctx.client().chatPostEphemeral { p ->
                         p.channel(event.channel)
                         p.user(event.user)
-                        p.text("Hi there! I no longer accept emoji proposals here. Instead, send me a DM of your image to propose a new emoji!")
+                        p.text(
+                            "Hi there! I no longer accept emoji proposals here. Instead, send me a DM of your image to propose a new emoji!"
+                        )
                     }
                 }
             }
@@ -73,21 +83,26 @@ class MessageHandler(private val config: Config, private val emojiService: Emoji
         }
     }
 
-    fun handleProposeButtonClick(req: BlockActionRequest, ctx: ActionContext) {
-        val metadata = mapOf(
-            Pair("fileId", req.payload.actions[0].value),
-            Pair("responseUrl", req.payload.responseUrl),
-            Pair("triggerId", req.payload.triggerId),
-            Pair("channelId", req.payload.channel.id),
-            Pair("messageTs", req.payload.message.ts)
-        )
+    fun handleProposeButtonClick(
+        req: BlockActionRequest,
+        ctx: ActionContext
+    ) {
+        val metadata =
+            mapOf(
+                Pair("fileId", req.payload.actions[0].value),
+                Pair("responseUrl", req.payload.responseUrl),
+                Pair("triggerId", req.payload.triggerId),
+                Pair("channelId", req.payload.channel.id),
+                Pair("messageTs", req.payload.message.ts)
+            )
 
-        val ogMsg = ctx.client().conversationsHistory {
-            it.channel(req.payload.channel.id)
-            it.oldest(req.payload.message.threadTs)
-            it.latest(req.payload.message.threadTs)
-            it.inclusive(true)
-        }
+        val ogMsg =
+            ctx.client().conversationsHistory {
+                it.channel(req.payload.channel.id)
+                it.oldest(req.payload.message.threadTs)
+                it.latest(req.payload.message.threadTs)
+                it.inclusive(true)
+            }
         var defaultText = ""
         if (ogMsg.isOk) {
             for (msg in ogMsg.messages) {
@@ -97,64 +112,78 @@ class MessageHandler(private val config: Config, private val emojiService: Emoji
             }
         }
 
-        val view = view { thisView ->
-            thisView.type("modal")
-                .callbackId(SENDIT_FORM)
-                .notifyOnClose(true)
-                .title(viewTitle { it.type("plain_text").text("Emoji Proposal").emoji(true) })
-                .submit(viewSubmit { it.type("plain_text").text("Submit").emoji(true) })
-                .close(viewClose { it.type("plain_text").text("Cancel").emoji(true) })
-                .privateMetadata(JsonOps.toJsonString(metadata))
-                .blocks {
-                    section {
-                        markdownText("Please provide some context in the thread: What is this image? Where did it come from? How do you expect it to be used?")
-                    }
-                    input {
-                        blockId("comment-block")
-                        optional(true)
-                        plainTextInput {
-                            actionId("comment-action")
-                            multiline(true)
-                            initialValue(defaultText)
+        val view =
+            view { thisView ->
+                thisView
+                    .type("modal")
+                    .callbackId(SENDIT_FORM)
+                    .notifyOnClose(true)
+                    .title(viewTitle { it.type("plain_text").text("Emoji Proposal").emoji(true) })
+                    .submit(viewSubmit { it.type("plain_text").text("Submit").emoji(true) })
+                    .close(viewClose { it.type("plain_text").text("Cancel").emoji(true) })
+                    .privateMetadata(JsonOps.toJsonString(metadata))
+                    .blocks {
+                        section {
+                            markdownText(
+                                "Please provide some context in the thread: What is this image? Where did it come from? How do you expect it to be used?"
+                            )
                         }
-                        label("Say more...", emoji = true)
+                        input {
+                            blockId("comment-block")
+                            optional(true)
+                            plainTextInput {
+                                actionId("comment-action")
+                                multiline(true)
+                                initialValue(defaultText)
+                            }
+                            label("Say more...", emoji = true)
+                        }
                     }
-                }
-        }
+            }
 
-        val r = ctx.client().viewsOpen {
-            it.triggerId(ctx.triggerId).view(view)
-        }
+        val r =
+            ctx.client().viewsOpen {
+                it.triggerId(ctx.triggerId).view(view)
+            }
         if (!r.isOk) {
             logger.warn(r.error)
         }
     }
 
-    fun handleSenditFormSubmit(req: ViewSubmissionRequest, ctx: ViewSubmissionContext) {
+    fun handleSenditFormSubmit(
+        req: ViewSubmissionRequest,
+        ctx: ViewSubmissionContext
+    ) {
         logger.info("got form submit")
 
         val mapType = mapOf(Pair("", ""), Pair("", ""))
-        val metadata = try {
-            JsonOps.fromJson(req.payload.view.privateMetadata, mapType.javaClass)
-        } catch (ex: Exception) {
-            logger.warn("Could not import metadata from form submission: ${ex.message}")
-            return
-        }
-        val proposalFileInfo = try {
-            ctx.client().filesInfo {
-                it.file(metadata["fileId"])
+        val metadata =
+            try {
+                JsonOps.fromJson(req.payload.view.privateMetadata, mapType.javaClass)
+            } catch (ex: Exception) {
+                logger.warn("Could not import metadata from form submission: ${ex.message}")
+                return
             }
-        } catch (ex: Exception) {
-            logger.warn("Could not get file info: ${ex.message}")
-            return
-        }
+        val proposalFileInfo =
+            try {
+                ctx.client().filesInfo {
+                    it.file(metadata["fileId"])
+                }
+            } catch (ex: Exception) {
+                logger.warn("Could not get file info: ${ex.message}")
+                return
+            }
         if (!proposalFileInfo.isOk) {
             logger.warn("Could not get file info: ${proposalFileInfo.error}")
             return
         }
 
         val eventFile = proposalFileInfo.file
-        var comment = req.payload.view.state.values["comment-block"]?.get("comment-action")?.value?.replace("\n", "\n>")
+        var comment =
+            req.payload.view.state.values["comment-block"]
+                ?.get("comment-action")
+                ?.value
+                ?.replace("\n", "\n>")
         if (!comment.isNullOrEmpty() && comment.isNotBlank()) {
             comment = ">$comment"
         }
@@ -172,19 +201,22 @@ class MessageHandler(private val config: Config, private val emojiService: Emoji
 
             if (channelId != null && messageTs != null) {
                 val proposal = r.getOrNull()
-                val updateResult = ctx.client().chatUpdate { req ->
-                    req.channel(channelId)
-                    req.ts(messageTs)
-                    req.blocks {
-                        section {
-                            if (proposal?.permalink != null) {
-                                markdownText("<${proposal.permalink}|Proposal posted here.>\nIf you wish to withdraw this proposal, react to that post with :${Proposals.WITHDRAW}: (`:${Proposals.WITHDRAW}:`).")
-                            } else {
-                                markdownText(":warning: Proposal failed to post. Please try again or contact an admin.")
+                val updateResult =
+                    ctx.client().chatUpdate { req ->
+                        req.channel(channelId)
+                        req.ts(messageTs)
+                        req.blocks {
+                            section {
+                                if (proposal?.permalink != null) {
+                                    markdownText(
+                                        "<${proposal.permalink}|Proposal posted here.>\nIf you wish to withdraw this proposal, react to that post with :${Proposals.WITHDRAW}: (`:${Proposals.WITHDRAW}:`)."
+                                    )
+                                } else {
+                                    markdownText(":warning: Proposal failed to post. Please try again or contact an admin.")
+                                }
                             }
                         }
                     }
-                }
                 logger.info("Chat update result: ${updateResult.isOk}, error: ${updateResult.error}")
             } else {
                 logger.warn("Missing channelId or messageTs in metadata, cannot update original message")
@@ -195,7 +227,11 @@ class MessageHandler(private val config: Config, private val emojiService: Emoji
         }
     }
 
-    private fun handleDmImagePost(eventTs: String, eventFile: File, ctx: EventContext) {
+    private fun handleDmImagePost(
+        eventTs: String,
+        eventFile: File,
+        ctx: EventContext
+    ) {
         val (name, extension) = stripExtension(eventFile.name)
 
         val emojiList = ctx.client().getAllEmoji()
@@ -207,25 +243,27 @@ class MessageHandler(private val config: Config, private val emojiService: Emoji
 
         val warnings = ImageHelp.checkSize(rawFile)
 
-        val result = ImageHelp.runCatching {
-            generatePreview(rawFile)
-        }
+        val result =
+            ImageHelp.runCatching {
+                generatePreview(rawFile)
+            }
         if (result.isFailure) {
             logger.warn("Upload of preview.$name.$rawSha1.$extension failed:  ${result.exceptionOrNull()}")
             warnings.add("Image preview could not be generated: ${result.exceptionOrNull()?.message}")
         } else {
             val previewBytes = result.getOrNull()
             // Modern Slack upload flow
-            val uploadUrlResp = ctx.client().filesGetUploadURLExternal {
-                it.filename(
-                    if (ImageHelp.isGif(previewBytes)) {
-                        "preview.$name.$rawSha1.gif"
-                    } else {
-                        "preview.$name.$rawSha1.png"
-                    }
-                )
-                it.length(previewBytes?.size)
-            }
+            val uploadUrlResp =
+                ctx.client().filesGetUploadURLExternal {
+                    it.filename(
+                        if (ImageHelp.isGif(previewBytes)) {
+                            "preview.$name.$rawSha1.gif"
+                        } else {
+                            "preview.$name.$rawSha1.png"
+                        }
+                    )
+                    it.length(previewBytes?.size)
+                }
             if (!uploadUrlResp.isOk || uploadUrlResp.uploadUrl == null) {
                 logger.warn("Unable to get upload URL: ${uploadUrlResp.error}")
                 warnings.add("Unable to get upload URL: ${uploadUrlResp.error}")
@@ -253,7 +291,8 @@ class MessageHandler(private val config: Config, private val emojiService: Emoji
                             ctx.client().filesCompleteUploadExternal { req ->
                                 req.files(
                                     listOf(
-                                        FilesCompleteUploadExternalRequest.FileDetails.builder()
+                                        FilesCompleteUploadExternalRequest.FileDetails
+                                            .builder()
                                             .id(fileId) // <- from Step 1
                                             .title("$name preview")
                                             .build()
@@ -270,14 +309,16 @@ class MessageHandler(private val config: Config, private val emojiService: Emoji
                             val maxTries = 10
                             val delayMs = 1000L
                             for (i in 1..maxTries) {
-                                val replies = ctx.client().conversationsReplies {
-                                    it.channel(ctx.channelId)
-                                    it.ts(eventTs)
-                                }
-                                if (replies.isOk && replies.messages != null) {
-                                    val found = replies.messages.any { m ->
-                                        m.files?.any { f -> f.id == fileId } == true
+                                val replies =
+                                    ctx.client().conversationsReplies {
+                                        it.channel(ctx.channelId)
+                                        it.ts(eventTs)
                                     }
+                                if (replies.isOk && replies.messages != null) {
+                                    val found =
+                                        replies.messages.any { m ->
+                                            m.files?.any { f -> f.id == fileId } == true
+                                        }
                                     if (found) {
                                         break
                                     }
@@ -310,11 +351,12 @@ class MessageHandler(private val config: Config, private val emojiService: Emoji
                 it.threadTs(eventTs)
             }
         } else {
-            val proposeText = if (isReplacement) {
-                "Propose this image to replace current the current `:$name:` emoji :$name:?"
-            } else {
-                "Propose this image for the emoji `:$name:`?"
-            }
+            val proposeText =
+                if (isReplacement) {
+                    "Propose this image to replace current the current `:$name:` emoji :$name:?"
+                } else {
+                    "Propose this image for the emoji `:$name:`?"
+                }
             ctx.client().chatPostMessage {
                 it.channel(ctx.channelId)
                 it.text(proposeText)
