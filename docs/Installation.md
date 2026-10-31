@@ -5,7 +5,7 @@ Emoji Manager is a more advanced app that requires special permissions and multi
 ## Slack Configuration
 
 Create a Slack application on https://api.slack.com/apps and select the workspace it will be installed into.
-The Slack configuration can be described by the example [manifest.yml](manifest_exampe.yml). Make sure to update the values for your webserver hostname.
+The Slack configuration can be described by the example [manifest](manifest.example.yml). Update the hostname and paths to match `server.urlPrefix` and `server.urlPath`.
 
 ## Slack Deployment
 
@@ -38,20 +38,16 @@ votes:
   winBy: 14
   calendarHolidays:
     - "2025-01-01" # New Years (US/IN)
-      "2026-01-01" # New Years (US/IN)
-
-      "2025-01-14" # Sankranti (IN)
-      "2026-01-14" # Sankranti (IN)
-
-      "2025-03-31" # Eid ul fitr (IN) — subject to moon sighting
-      "2026-03-20" # Eid ul fitr (IN) — subject to moon sighting
-
-      "2025-05-26" # Memorial Day (US)
-      "2026-05-25" # Memorial Day (US)
-    
-      "2025-06-19" # Juneteenth (US)
-      "2026-06-19" # Juneteenth (US)
-      # etc...
+    - "2026-01-01" # New Years (US/IN)
+    - "2025-01-14" # Sankranti (IN)
+    - "2026-01-14" # Sankranti (IN)
+    - "2025-03-31" # Eid ul fitr (IN) — subject to moon sighting
+    - "2026-03-20" # Eid ul fitr (IN) — subject to moon sighting
+    - "2025-05-26" # Memorial Day (US)
+    - "2026-05-25" # Memorial Day (US)
+    - "2025-06-19" # Juneteenth (US)
+    - "2026-06-19" # Juneteenth (US)
+    # etc...
 
 text:
   intro: |
@@ -106,7 +102,7 @@ Emoji Manager requires a PostgreSQL database to store emoji proposals.  It does 
 
 #### Ingress Web
 
-Due to how Slack's API works for adding emoji, Emoji Manager must have its service exposed to the Internet.  It is designed to handle proxies, api gateways, or forwarders well, however. When adding an emoji, Emoji Manager will generate a URL in the format of `https://${server.urlPrefix}/_images/${image_id}` to have the Slack servers download from.
+Due to how Slack's API works for adding emoji, Emoji Manager must have its service exposed to the Internet. It is designed to handle proxies, API gateways, or forwarders. When adding an emoji, Emoji Manager generates an image URL by appending `${server.urlPath}_images_${image_id}` to `server.urlPrefix`; ensure that route is reachable by Slack.
 
 Socket-mode can be used for handling Slack events, however the web service will still be referenced for image uploads to Slack.
 
@@ -135,17 +131,17 @@ Below are the complete configuration options available, and defaults if any
 server:
   port: 3000 # TCP port number to listen on, optional
   urlPrefix: https://example.com # URL prefix for publishing links, required
-  urlPath: /api/slack_events # URL path to use, optional
+  urlPath: /slack_events/v1/emojimanager-v1 # Path prefix for Slack event and image URLs, optional
 
 database:
-  url: #JDBC connection URL. Note: Only Postgres is tested, required
+  url: jdbc:postgresql://localhost:5432/emojimanager # PostgreSQL JDBC URL; PostgreSQL is the tested database
   username: # Username to connect with, required
   password: # Password to connect with, required
   adminUsername: # Username to perform database migrations, required if doing migrations
   adminPassword: # Password to perform database migrations, required if doing migrations
-  autoMigrations: true # Auto-perform database schema migrations
+  autoMigrate: true # Auto-perform database schema migrations
 
-vote:
+votes:
   # Not setting these values means the default values will be used
   commentPeriod: 1 # in business days, optional
   maxDuration: 30 # in business days, optional
@@ -157,7 +153,7 @@ vote:
     - 2026-01-01 # Look in the source at default.conf to see built-in list
 slack:
   slackSigningSecret: 1234567890 # From Slack installation, required
-  slackAdminToken:  xoxp-XXXXX # From Slack installation, required
+  slackAdminToken: xoxp-XXXXX # From Slack installation, required
   slackAppToken: xoxa-XXXXX # From Slack installation, optional
   slackBotToken: xoxb-XXXXX # From Slack installation, required
   slackEmojiChannel: C123456789 # Slack Channel ID to conduct voting in, required
@@ -171,7 +167,7 @@ slack:
     - C123456789
 text: # These are all optional, to allow local customizations
   intro: # The text to use in several help locations. Suggested you add a link to company policies
-  homeAdvanced: # The text on the App Home scren
+  homeAdvanced: # The text on the App Home screen
   help:
     general: # General help usage
     admin: # Help usage only shown to admins

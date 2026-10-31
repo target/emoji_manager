@@ -3,20 +3,20 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.21")
         classpath(libs.ktlint)
     }
 }
 
 plugins {
     application
-    kotlin("jvm") version "2.2.0"
+    kotlin("jvm") version "2.4.21"
     id("jacoco")
     alias(libs.plugins.ktlint)
 }
 
 ktlint {
-    version.set("0.48.2")
+    version.set("1.8.0")
 }
 group = "com.target.slack"
 version = "2.3.0"
@@ -49,7 +49,7 @@ dependencies {
     implementation(libs.tyrusClient)
     implementation(libs.bundles.slf4j)
 
-    testImplementation("com.h2database:h2:2.3.232")
+    testImplementation("com.h2database:h2:2.5.252")
     testImplementation(kotlin("test-junit"))
 }
 

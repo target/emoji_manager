@@ -1,25 +1,25 @@
 [versions]
 # https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib
-kotlin = "2.2.0"
+kotlin = "2.4.21"
 
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
-slf4j = "2.0.17"
+slf4j = "2.0.20"
 # https://mvnrepository.com/artifact/com.sksamuel.hoplite/hoplite-core
 hoplite = "2.7.5" # Updating the version of hoplite seems to break the /emoji help command
 # https://mvnrepository.com/artifact/org.http4k/http4k-core
-http4k = "5.21.1.0"
+http4k = "6.61.0.0"
 # https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
-jackson = "2.19.1"
+jackson = "2.22.4"
 # https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
-okhttp = "5.0.0"
+okhttp = "5.5.1"
 # https://mvnrepository.com/artifact/org.postgresql/postgresql
-postgresql = "42.7.7"
+postgresql = "42.7.14"
 # https://mvnrepository.com/artifact/org.flywaydb/flyway-core
-flyway = "11.10.1"
+flyway = "13.12.0"
 # https://mvnrepository.com/artifact/com.sksamuel.scrimage/scrimage-core
-scrimage = "4.3.2"
+scrimage = "4.6.11"
 # https://mvnrepository.com/artifact/com.slack.api/bolt
-bolt = "1.45.4"
+bolt = "1.53.0"
 # https://mvnrepository.com/artifact/javax.websocket/javax.websocket-api
 websocket = "1.1"
 # https://mvnrepository.com/artifact/org.glassfish.tyrus.bundles/tyrus-standalone-client
@@ -27,7 +27,7 @@ tyrus = "1.21" # bolt does not support newer than v1.x
 # https://mvnrepository.com/artifact/com.target/lite-for-jdbc
 liteForJdbc = "3.0.2"
 
-ktlint = "11.2.0"
+ktlint = "14.2.0"
 
 [libraries]
 
@@ -68,4 +68,3 @@ flyway = ["flyway-core", "flyway-postgresql"]
 [plugins]
 flyway = { id = "org.flywaydb.flyway", version.ref = "flyway" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
-
